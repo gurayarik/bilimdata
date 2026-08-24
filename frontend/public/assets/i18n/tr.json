@@ -1,0 +1,100 @@
+{
+  "header": {
+    "logo": "BilimData",
+    "login": "Giriş Yap",
+    "dashboard": "Panelim"
+  },
+  "nav": {
+    "programs": "Programlar",
+    "instructors": "Uzman Kadro",
+    "deals": "Fırsatlar",
+    "contact": "İletişim",
+    "register": "Hemen Kayıt Ol"
+  },
+  "hero": {
+    "title": "Veri Bilimi ve Yazılım Kariyerinizi Bugün Şekillendirin",
+    "subtitle": "Uzman eğitmenlerden alacağınız uygulamalı eğitimlerle sektöre hazır olun.",
+    "cta_explore": "Programları Keşfet",
+    "cta_deals": "Ücretsiz Fırsatlar"
+  },
+  "categories": {
+    "title": "Kapsamlı Uzmanlık Alanları",
+    "subtitle": "İlgi alanınıza uygun eğitim programını seçin."
+  },
+  "why_us": {
+    "title": "Neden Biz?",
+    "item1": "Sektör deneyimli eğitmenler",
+    "item2": "Uygulamalı, proje tabanlı öğrenim",
+    "item3": "Kariyer odaklı mentörlük",
+    "item4": "Esnek, kendi hızınızda öğrenme"
+  },
+  "courses_section": {
+    "title": "Öne Çıkan Eğitimler"
+  },
+  "advantages": {
+    "title": "Öğrenci Avantajları",
+    "coupons_title": "Kuponlar",
+    "coupons_desc": "Kampanya dönemlerinde özel indirim kuponlarından yararlanın.",
+    "portal_title": "Portal",
+    "portal_desc": "Tüm eğitimlerinize ve ilerlemenize tek panelden erişin.",
+    "roadmaps_title": "Yol Haritaları",
+    "roadmaps_desc": "Hedefinize uygun adım adım kariyer yol haritaları.",
+    "contact_title": "İletişim",
+    "contact_desc": "Sorularınız için eğitmen ve destek ekibimize kolayca ulaşın."
+  },
+  "footer": {
+    "copyright": "© 2026 BilimData. Tüm hakları saklıdır.",
+    "privacy": "Gizlilik Politikası",
+    "terms": "Kullanım Koşulları"
+  },
+  "courses_page": {
+    "title": "Eğitim Kataloğu",
+    "all_categories": "Tüm Kategoriler",
+    "empty": "Bu kategoride henüz eğitim yok."
+  },
+  "auth": {
+    "login_title": "Giriş Yap",
+    "register_title": "Kayıt Ol",
+    "login_with_google": "Google ile Giriş Yap",
+    "register_with_google": "Google ile Kayıt Ol",
+    "email": "E-posta",
+    "password": "Şifre",
+    "full_name": "Ad Soyad",
+    "login_button": "Giriş Yap",
+    "register_button": "Kayıt Ol",
+    "no_account": "Hesabınız yok mu?",
+    "have_account": "Zaten hesabınız var mı?",
+    "register_link": "Kayıt Ol",
+    "login_link": "Giriş Yap",
+    "verify_email_info": "Kaydınız alındı — devam etmek için e-postanızı doğrulayın."
+  },
+  "dashboard": {
+    "title": "Eğitimlerim",
+    "welcome": "Hoş geldin, {{name}}",
+    "welcome_fallback": "kullanıcı",
+    "sign_out": "Çıkış Yap",
+    "progress_placeholder": "İlerleme ve sertifikalar Faz 8'de doldurulacak."
+  },
+  "course_detail": {
+    "about": "Bu Eğitim Hakkında",
+    "curriculum": "Müfredat",
+    "enroll_cta": "Kayıt Ol",
+    "login_to_enroll": "Kayıt Olmak İçin Giriş Yapın",
+    "already_enrolled": "Bu eğitime kayıtlısınız",
+    "buy_on_udemy": "Udemy'de Satın Al",
+    "free_on_udemy": "Udemy'de Ücretsiz Al",
+    "coupon_note": "Kupon kodu otomatik uygulanır"
+  },
+  "player": {
+    "need_login": "Bu dersi izlemek için giriş yapmalısınız.",
+    "need_enrollment": "Bu eğitime kayıtlı değilsiniz.",
+    "back_to_course": "Kurs Sayfasına Dön"
+  },
+  "course_card": {
+    "free": "Ücretsiz"
+  },
+  "udemy_section": {
+    "title": "Udemy Eğitimlerimiz",
+    "subtitle": "Kupon kodlu özel fiyatlarla Udemy üzerindeki eğitimlerimize göz atın."
+  }
+}

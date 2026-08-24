@@ -1,0 +1,100 @@
+{
+  "header": {
+    "logo": "BilimData",
+    "login": "Log In",
+    "dashboard": "My Dashboard"
+  },
+  "nav": {
+    "programs": "Programs",
+    "instructors": "Our Experts",
+    "deals": "Deals",
+    "contact": "Contact",
+    "register": "Sign Up Now"
+  },
+  "hero": {
+    "title": "Shape Your Data Science and Software Career Today",
+    "subtitle": "Get industry-ready with hands-on training from expert instructors.",
+    "cta_explore": "Explore Programs",
+    "cta_deals": "Free Deals"
+  },
+  "categories": {
+    "title": "Comprehensive Areas of Expertise",
+    "subtitle": "Choose the program that matches your interests."
+  },
+  "why_us": {
+    "title": "Why Us?",
+    "item1": "Industry-experienced instructors",
+    "item2": "Hands-on, project-based learning",
+    "item3": "Career-focused mentorship",
+    "item4": "Flexible, self-paced learning"
+  },
+  "courses_section": {
+    "title": "Featured Courses"
+  },
+  "advantages": {
+    "title": "Student Advantages",
+    "coupons_title": "Coupons",
+    "coupons_desc": "Take advantage of special discount coupons during campaigns.",
+    "portal_title": "Portal",
+    "portal_desc": "Access all your courses and progress from a single panel.",
+    "roadmaps_title": "Roadmaps",
+    "roadmaps_desc": "Step-by-step career roadmaps tailored to your goals.",
+    "contact_title": "Contact",
+    "contact_desc": "Easily reach our instructors and support team with your questions."
+  },
+  "footer": {
+    "copyright": "© 2026 BilimData. All rights reserved.",
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Use"
+  },
+  "courses_page": {
+    "title": "Course Catalog",
+    "all_categories": "All Categories",
+    "empty": "No courses in this category yet."
+  },
+  "auth": {
+    "login_title": "Log In",
+    "register_title": "Sign Up",
+    "login_with_google": "Log In with Google",
+    "register_with_google": "Sign Up with Google",
+    "email": "Email",
+    "password": "Password",
+    "full_name": "Full Name",
+    "login_button": "Log In",
+    "register_button": "Sign Up",
+    "no_account": "Don't have an account?",
+    "have_account": "Already have an account?",
+    "register_link": "Sign Up",
+    "login_link": "Log In",
+    "verify_email_info": "Registration received — please verify your email to continue."
+  },
+  "dashboard": {
+    "title": "My Courses",
+    "welcome": "Welcome, {{name}}",
+    "welcome_fallback": "user",
+    "sign_out": "Sign Out",
+    "progress_placeholder": "Progress and certificates will be filled in Phase 8."
+  },
+  "course_detail": {
+    "about": "About This Course",
+    "curriculum": "Curriculum",
+    "enroll_cta": "Enroll",
+    "login_to_enroll": "Log In to Enroll",
+    "already_enrolled": "You're enrolled in this course",
+    "buy_on_udemy": "Buy on Udemy",
+    "free_on_udemy": "Get It Free on Udemy",
+    "coupon_note": "Coupon code applied automatically"
+  },
+  "player": {
+    "need_login": "You need to log in to watch this lesson.",
+    "need_enrollment": "You are not enrolled in this course.",
+    "back_to_course": "Back to Course"
+  },
+  "course_card": {
+    "free": "Free"
+  },
+  "udemy_section": {
+    "title": "Our Udemy Courses",
+    "subtitle": "Check out our courses on Udemy with special coupon pricing."
+  }
+}
