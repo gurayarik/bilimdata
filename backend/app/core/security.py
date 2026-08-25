@@ -87,3 +87,22 @@ async def require_admin(user: CurrentUser = Depends(get_current_user)) -> Curren
     if user.role != "admin":
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Admin access required")
     return user
+
+
+async def require_instructor_or_admin(
+    user: CurrentUser = Depends(get_current_user),
+) -> CurrentUser:
+    if user.role not in ("instructor", "admin"):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Instructor access required"
+        )
+    return user
+
+
+def get_instructor_id_for_user(user_id: str) -> str | None:
+    """Bu kullanıcıya (profiles.id) ait instructors.id'yi döner, yoksa None."""
+    supabase = get_supabase()
+    result = supabase.table("instructors").select("id").eq("profile_id", user_id).execute()
+    if not result.data:
+        return None
+    return result.data[0]["id"]

@@ -26,9 +26,13 @@ import { Course } from '../../../core/models/course.model';
           <p class="line-clamp-2 flex-1 text-sm text-slate-600">{{ course.short_description }}</p>
         }
         <div class="flex items-baseline gap-2">
-          @if (course.discount_price) {
+          @if (course.discount_price !== null && course.discount_price !== undefined) {
             <span class="text-sm text-slate-400 line-through">{{ course.price }} ₺</span>
-            <span class="font-bold text-accent-600">{{ course.discount_price }} ₺</span>
+            @if (course.discount_price === 0) {
+              <span class="font-bold text-accent-600">{{ 'course_card.free' | translate }}</span>
+            } @else {
+              <span class="font-bold text-accent-600">{{ course.discount_price }} ₺</span>
+            }
           } @else if (course.price === 0) {
             <span class="font-bold text-accent-600">{{ 'course_card.free' | translate }}</span>
           } @else {

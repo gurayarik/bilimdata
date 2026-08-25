@@ -11,6 +11,8 @@ from .routers import (
     coupons,
     courses,
     enrollments,
+    instructor,
+    instructor_applications,
     lessons,
     profiles,
     reviews,
@@ -37,6 +39,8 @@ app.include_router(blog.router)
 app.include_router(admin.router)
 app.include_router(certificates.router)
 app.include_router(ai.router)
+app.include_router(instructor_applications.router)
+app.include_router(instructor.router)
 
 
 @app.get("/health")

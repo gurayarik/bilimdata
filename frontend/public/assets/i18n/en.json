@@ -81,6 +81,7 @@
     "enroll_cta": "Enroll",
     "login_to_enroll": "Log In to Enroll",
     "already_enrolled": "You're enrolled in this course",
+    "pending_approval": "Your enrollment was received — you'll get access once your payment is confirmed.",
     "buy_on_udemy": "Buy on Udemy",
     "free_on_udemy": "Get It Free on Udemy",
     "coupon_note": "Coupon code applied automatically"

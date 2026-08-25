@@ -23,5 +23,12 @@ export const ADMIN_ROUTES: Routes = [
         (m) => m.EnrollmentApprovalComponent
       ),
   },
+  {
+    path: 'instructor-applications',
+    loadComponent: () =>
+      import('./instructor-applications/instructor-applications.component').then(
+        (m) => m.AdminInstructorApplicationsComponent
+      ),
+  },
   { path: '', redirectTo: 'courses', pathMatch: 'full' },
 ];

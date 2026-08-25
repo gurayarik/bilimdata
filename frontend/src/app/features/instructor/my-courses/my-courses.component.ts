@@ -1,16 +1,12 @@
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { Category } from '../../../core/models/category.model';
-import { AdminCourse, AdminInstructor } from '../../../core/models/admin.model';
-import { AdminService } from '../../../core/services/admin.service';
+import { AdminCourse } from '../../../core/models/admin.model';
 import { CategoryService } from '../../../core/services/category.service';
-import { AdminNavComponent } from '../shared/admin-nav.component';
+import { InstructorService } from '../../../core/services/instructor.service';
 
-type CourseForm = Partial<AdminCourse> & {
-  title: string;
-  slug: string;
-  price: number;
-};
+type CourseForm = Partial<AdminCourse> & { title: string; slug: string; price: number };
 
 function emptyForm(): CourseForm {
   return {
@@ -20,32 +16,31 @@ function emptyForm(): CourseForm {
     description: '',
     cover_image_url: '',
     category_id: null,
-    instructor_id: null,
     price: 0,
     discount_price: null,
     level: 'beginner',
     language: 'tr',
     is_published: false,
-    provider: 'internal',
-    external_url: '',
-    coupon_code: '',
   };
 }
 
 @Component({
-  selector: 'app-course-editor',
+  selector: 'app-instructor-my-courses',
   standalone: true,
-  imports: [FormsModule, AdminNavComponent],
+  imports: [FormsModule, RouterLink],
   template: `
-    <app-admin-nav />
-    <section class="mx-auto max-w-5xl px-4 pb-16">
-      <h1 class="text-xl font-bold text-brand-900">Kurs Yönetimi</h1>
+    <section class="mx-auto max-w-4xl px-4 py-10">
+      <div class="flex items-center justify-between">
+        <h1 class="text-xl font-bold text-brand-900">Kurslarım</h1>
+        <a routerLink="/instructor/lessons" class="text-sm font-semibold text-brand-900 hover:underline">
+          Ders Yönetimine Git →
+        </a>
+      </div>
 
       <table class="mt-6 w-full text-left text-sm">
         <thead>
           <tr class="border-b border-slate-200 text-slate-500">
             <th class="py-2">Başlık</th>
-            <th>Sağlayıcı</th>
             <th>Fiyat</th>
             <th>Yayında</th>
             <th></th>
@@ -55,7 +50,6 @@ function emptyForm(): CourseForm {
           @for (course of courses; track course.id) {
             <tr class="border-b border-slate-100">
               <td class="py-2">{{ course.title }}</td>
-              <td>{{ course.provider }}</td>
               <td>{{ course.discount_price ?? course.price }} ₺</td>
               <td>{{ course.is_published ? 'Evet' : 'Hayır' }}</td>
               <td class="flex gap-2 py-2 text-right">
@@ -118,26 +112,16 @@ function emptyForm(): CourseForm {
           </select>
         </label>
         <label class="flex flex-col gap-1 text-sm">
-          Eğitmen
-          <select
-            class="rounded-md border border-slate-300 px-3 py-2"
-            [(ngModel)]="form.instructor_id"
-            name="instructor_id"
-          >
-            <option [ngValue]="null">—</option>
-            @for (ins of instructors; track ins.id) {
-              <option [ngValue]="ins.id">{{ ins.title }}</option>
-            }
+          Seviye
+          <select class="rounded-md border border-slate-300 px-3 py-2" [(ngModel)]="form.level" name="level">
+            <option value="beginner">Başlangıç</option>
+            <option value="intermediate">Orta</option>
+            <option value="advanced">İleri</option>
           </select>
         </label>
         <label class="flex flex-col gap-1 text-sm">
           Fiyat (₺)
-          <input
-            type="number"
-            class="rounded-md border border-slate-300 px-3 py-2"
-            [(ngModel)]="form.price"
-            name="price"
-          />
+          <input type="number" class="rounded-md border border-slate-300 px-3 py-2" [(ngModel)]="form.price" name="price" />
         </label>
         <label class="flex flex-col gap-1 text-sm">
           İndirimli Fiyat (₺)
@@ -148,50 +132,10 @@ function emptyForm(): CourseForm {
             name="discount_price"
           />
         </label>
-        <label class="flex flex-col gap-1 text-sm">
-          Seviye
-          <select class="rounded-md border border-slate-300 px-3 py-2" [(ngModel)]="form.level" name="level">
-            <option value="beginner">Başlangıç</option>
-            <option value="intermediate">Orta</option>
-            <option value="advanced">İleri</option>
-          </select>
-        </label>
-        <label class="flex flex-col gap-1 text-sm">
-          Dil
-          <select class="rounded-md border border-slate-300 px-3 py-2" [(ngModel)]="form.language" name="language">
-            <option value="tr">Türkçe</option>
-            <option value="en">English</option>
-          </select>
-        </label>
         <label class="flex items-center gap-2 text-sm">
           <input type="checkbox" [(ngModel)]="form.is_published" name="is_published" />
           Yayında
         </label>
-        <label class="flex flex-col gap-1 text-sm">
-          Sağlayıcı
-          <select class="rounded-md border border-slate-300 px-3 py-2" [(ngModel)]="form.provider" name="provider">
-            <option value="internal">Platform (YouTube)</option>
-            <option value="udemy">Udemy</option>
-          </select>
-        </label>
-        @if (form.provider === 'udemy') {
-          <label class="flex flex-col gap-1 text-sm">
-            Udemy Linki
-            <input
-              class="rounded-md border border-slate-300 px-3 py-2"
-              [(ngModel)]="form.external_url"
-              name="external_url"
-            />
-          </label>
-          <label class="flex flex-col gap-1 text-sm">
-            Kupon Kodu
-            <input
-              class="rounded-md border border-slate-300 px-3 py-2"
-              [(ngModel)]="form.coupon_code"
-              name="coupon_code"
-            />
-          </label>
-        }
 
         <div class="col-span-2 flex gap-3">
           <button
@@ -201,11 +145,7 @@ function emptyForm(): CourseForm {
             {{ editingId ? 'Güncelle' : 'Oluştur' }}
           </button>
           @if (editingId) {
-            <button
-              type="button"
-              class="rounded-md border border-slate-300 px-5 py-2 text-sm"
-              (click)="resetForm()"
-            >
+            <button type="button" class="rounded-md border border-slate-300 px-5 py-2 text-sm" (click)="resetForm()">
               Vazgeç
             </button>
           }
@@ -214,26 +154,24 @@ function emptyForm(): CourseForm {
     </section>
   `,
 })
-export class CourseEditorComponent implements OnInit {
+export class InstructorMyCoursesComponent implements OnInit {
   courses: AdminCourse[] = [];
   categories: Category[] = [];
-  instructors: AdminInstructor[] = [];
   form: CourseForm = emptyForm();
   editingId: string | null = null;
 
   constructor(
-    private readonly adminService: AdminService,
+    private readonly instructorService: InstructorService,
     private readonly categoryService: CategoryService
   ) {}
 
   ngOnInit() {
     this.load();
     this.categoryService.list().subscribe((categories) => (this.categories = categories));
-    this.adminService.listInstructors().subscribe((instructors) => (this.instructors = instructors));
   }
 
   load() {
-    this.adminService.listCourses().subscribe((courses) => (this.courses = courses));
+    this.instructorService.listCourses().subscribe((courses) => (this.courses = courses));
   }
 
   edit(course: AdminCourse) {
@@ -249,12 +187,12 @@ export class CourseEditorComponent implements OnInit {
   save() {
     const payload = { ...this.form };
     if (this.editingId) {
-      this.adminService.updateCourse(this.editingId, payload).subscribe(() => {
+      this.instructorService.updateCourse(this.editingId, payload).subscribe(() => {
         this.resetForm();
         this.load();
       });
     } else {
-      this.adminService.createCourse(payload).subscribe(() => {
+      this.instructorService.createCourse(payload).subscribe(() => {
         this.resetForm();
         this.load();
       });
@@ -263,6 +201,6 @@ export class CourseEditorComponent implements OnInit {
 
   remove(course: AdminCourse) {
     if (!confirm(`"${course.title}" silinsin mi?`)) return;
-    this.adminService.deleteCourse(course.id).subscribe(() => this.load());
+    this.instructorService.deleteCourse(course.id).subscribe(() => this.load());
   }
 }

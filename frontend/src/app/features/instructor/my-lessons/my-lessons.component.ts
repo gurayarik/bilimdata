@@ -1,16 +1,14 @@
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { AdminCourse, AdminSection } from '../../../core/models/admin.model';
-import { AdminService } from '../../../core/services/admin.service';
-import { AdminNavComponent } from '../shared/admin-nav.component';
+import { AdminCourse, AdminSection, AdminSectionLesson } from '../../../core/models/admin.model';
+import { InstructorService } from '../../../core/services/instructor.service';
 
 @Component({
-  selector: 'app-lesson-editor',
+  selector: 'app-instructor-my-lessons',
   standalone: true,
-  imports: [FormsModule, AdminNavComponent],
+  imports: [FormsModule],
   template: `
-    <app-admin-nav />
-    <section class="mx-auto max-w-4xl px-4 pb-16">
+    <section class="mx-auto max-w-4xl px-4 py-10">
       <h1 class="text-xl font-bold text-brand-900">Ders Yönetimi</h1>
 
       <label class="mt-4 flex flex-col gap-1 text-sm">
@@ -39,11 +37,39 @@ import { AdminNavComponent } from '../shared/admin-nav.component';
               </div>
               <ul>
                 @for (lesson of section.lessons; track lesson.id) {
-                  <li class="flex items-center justify-between border-b border-slate-100 px-4 py-2 text-sm last:border-b-0">
-                    <span>{{ lesson.order_index }}. {{ lesson.title }} ({{ lesson.youtube_video_id }})</span>
-                    <button type="button" class="text-red-600 hover:underline" (click)="removeLesson(section, lesson)">
-                      Sil
-                    </button>
+                  <li class="border-b border-slate-100 px-4 py-2 text-sm last:border-b-0">
+                    <div class="flex items-center justify-between">
+                      <span>{{ lesson.order_index }}. {{ lesson.title }} ({{ lesson.youtube_video_id }})</span>
+                      <button type="button" class="text-red-600 hover:underline" (click)="removeLesson(section, lesson)">
+                        Sil
+                      </button>
+                    </div>
+
+                    @if (lesson.resources && lesson.resources.length) {
+                      <ul class="mt-1 flex flex-col gap-0.5 pl-4 text-xs text-slate-500">
+                        @for (resource of lesson.resources; track $index) {
+                          <li class="flex items-center gap-2">
+                            📎 <a [href]="resource.url" target="_blank" class="hover:underline">{{ resource.name }}</a>
+                            <button
+                              type="button"
+                              class="text-red-500 hover:underline"
+                              (click)="removeResource(lesson, $index)"
+                            >
+                              Sil
+                            </button>
+                          </li>
+                        }
+                      </ul>
+                    }
+
+                    <div class="mt-1 pl-4">
+                      <input
+                        type="file"
+                        accept=".pdf,.ppt,.pptx,.key,.odp"
+                        class="text-xs"
+                        (change)="uploadResource(lesson, $event)"
+                      />
+                    </div>
                   </li>
                 }
               </ul>
@@ -79,11 +105,7 @@ import { AdminNavComponent } from '../shared/admin-nav.component';
                   />
                 </label>
                 <label class="flex items-center gap-1 text-xs">
-                  <input
-                    type="checkbox"
-                    [(ngModel)]="newLesson[section.id].is_preview"
-                    name="preview-{{ section.id }}"
-                  />
+                  <input type="checkbox" [(ngModel)]="newLesson[section.id].is_preview" name="preview-{{ section.id }}" />
                   Önizleme
                 </label>
                 <button
@@ -101,10 +123,7 @@ import { AdminNavComponent } from '../shared/admin-nav.component';
               Yeni Bölüm Başlığı
               <input class="rounded-md border border-slate-300 px-3 py-2" [(ngModel)]="newSectionTitle" name="newSection" />
             </label>
-            <button
-              type="submit"
-              class="rounded-md border border-slate-300 px-4 py-2 text-sm font-semibold hover:bg-slate-50"
-            >
+            <button type="submit" class="rounded-md border border-slate-300 px-4 py-2 text-sm font-semibold hover:bg-slate-50">
               Bölüm Ekle
             </button>
           </form>
@@ -113,7 +132,7 @@ import { AdminNavComponent } from '../shared/admin-nav.component';
     </section>
   `,
 })
-export class LessonEditorComponent implements OnInit {
+export class InstructorMyLessonsComponent implements OnInit {
   courses: AdminCourse[] = [];
   sections: AdminSection[] = [];
   selectedCourseId: string | null = null;
@@ -123,16 +142,16 @@ export class LessonEditorComponent implements OnInit {
     { title: string; youtube_video_id: string; order_index: number; is_preview: boolean }
   > = {};
 
-  constructor(private readonly adminService: AdminService) {}
+  constructor(private readonly instructorService: InstructorService) {}
 
   ngOnInit() {
-    this.adminService.listCourses().subscribe((courses) => (this.courses = courses));
+    this.instructorService.listCourses().subscribe((courses) => (this.courses = courses));
   }
 
   loadSections() {
     this.sections = [];
     if (!this.selectedCourseId) return;
-    this.adminService.listSections(this.selectedCourseId).subscribe((sections) => {
+    this.instructorService.listSections(this.selectedCourseId).subscribe((sections) => {
       this.sections = sections;
       for (const section of sections) {
         this.newLesson[section.id] ??= {
@@ -147,7 +166,7 @@ export class LessonEditorComponent implements OnInit {
 
   addSection() {
     if (!this.selectedCourseId || !this.newSectionTitle.trim()) return;
-    this.adminService
+    this.instructorService
       .createSection(this.selectedCourseId, {
         title: this.newSectionTitle,
         order_index: this.sections.length + 1,
@@ -160,17 +179,31 @@ export class LessonEditorComponent implements OnInit {
 
   removeSection(section: AdminSection) {
     if (!confirm(`"${section.title}" bölümü (ve içindeki dersler) silinsin mi?`)) return;
-    this.adminService.deleteSection(section.id).subscribe(() => this.loadSections());
+    this.instructorService.deleteSection(section.id).subscribe(() => this.loadSections());
   }
 
   addLesson(section: AdminSection) {
     const draft = this.newLesson[section.id];
     if (!draft?.title || !draft?.youtube_video_id) return;
-    this.adminService.createLesson(section.id, draft).subscribe(() => this.loadSections());
+    this.instructorService.createLesson(section.id, draft).subscribe(() => this.loadSections());
   }
 
   removeLesson(section: AdminSection, lesson: { id: string; title: string }) {
     if (!confirm(`"${lesson.title}" dersi silinsin mi?`)) return;
-    this.adminService.deleteLesson(lesson.id).subscribe(() => this.loadSections());
+    this.instructorService.deleteLesson(lesson.id).subscribe(() => this.loadSections());
+  }
+
+  uploadResource(lesson: AdminSectionLesson, event: Event) {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+    this.instructorService.uploadResource(lesson.id, file).subscribe(() => {
+      input.value = '';
+      this.loadSections();
+    });
+  }
+
+  removeResource(lesson: AdminSectionLesson, index: number) {
+    this.instructorService.deleteResource(lesson.id, index).subscribe(() => this.loadSections());
   }
 }

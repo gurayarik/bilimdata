@@ -94,9 +94,13 @@ import { SupabaseService } from '../../../core/services/supabase.service';
               <img [src]="course.cover_image_url" class="mb-4 w-full rounded-md" [alt]="course.title" />
             }
             <div class="flex items-baseline gap-2">
-              @if (course.discount_price) {
+              @if (course.discount_price !== null && course.discount_price !== undefined) {
                 <span class="text-sm text-slate-400 line-through">{{ course.price }} ₺</span>
-                <span class="text-xl font-bold text-accent-600">{{ course.discount_price }} ₺</span>
+                @if (course.discount_price === 0) {
+                  <span class="text-xl font-bold text-accent-600">{{ 'course_card.free' | translate }}</span>
+                } @else {
+                  <span class="text-xl font-bold text-accent-600">{{ course.discount_price }} ₺</span>
+                }
               } @else if (course.price === 0) {
                 <span class="text-xl font-bold text-accent-600">{{ 'course_card.free' | translate }}</span>
               } @else {
@@ -112,10 +116,8 @@ import { SupabaseService } from '../../../core/services/supabase.service';
                 class="mt-4 block w-full rounded-md bg-accent-500 py-2.5 text-center font-semibold text-brand-900 hover:bg-accent-600"
               >
                 {{
-                  (course.price === 0
-                    ? 'course_detail.free_on_udemy'
-                    : 'course_detail.buy_on_udemy'
-                  ) | translate
+                  (isFree(course) ? 'course_detail.free_on_udemy' : 'course_detail.buy_on_udemy')
+                    | translate
                 }}
               </a>
               @if (course.coupon_code) {
@@ -126,6 +128,10 @@ import { SupabaseService } from '../../../core/services/supabase.service';
             } @else if (isEnrolled) {
               <p class="mt-4 rounded-md bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
                 {{ 'course_detail.already_enrolled' | translate }}
+              </p>
+            } @else if (pendingApproval) {
+              <p class="mt-4 rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-700">
+                {{ 'course_detail.pending_approval' | translate }}
               </p>
             } @else if (session$ | async) {
               <button
@@ -154,6 +160,7 @@ export class CourseDetailComponent implements OnInit {
   course: Course | null = null;
   sections: CurriculumSection[] = [];
   isEnrolled = false;
+  pendingApproval = false;
   enrolling = false;
   readonly session$;
 
@@ -179,13 +186,22 @@ export class CourseDetailComponent implements OnInit {
     return lesson.is_preview || this.isEnrolled;
   }
 
+  isFree(course: Course) {
+    const effectivePrice =
+      course.discount_price !== null && course.discount_price !== undefined
+        ? course.discount_price
+        : course.price;
+    return effectivePrice === 0;
+  }
+
   enroll() {
     if (!this.course) return;
     this.enrolling = true;
     this.enrollmentService.enroll(this.course.id).subscribe({
-      next: () => {
+      next: (enrollment) => {
         this.enrolling = false;
-        this.isEnrolled = true;
+        this.isEnrolled = enrollment.payment_status !== 'pending';
+        this.pendingApproval = enrollment.payment_status === 'pending';
       },
       error: () => (this.enrolling = false),
     });
@@ -201,9 +217,9 @@ export class CourseDetailComponent implements OnInit {
     this.supabase.session$.subscribe((session) => {
       if (!session) return;
       this.enrollmentService.mine().subscribe((enrollments) => {
-        this.isEnrolled = enrollments.some(
-          (e) => e.course_id === courseId && e.payment_status !== 'pending'
-        );
+        const mine = enrollments.find((e) => e.course_id === courseId);
+        this.isEnrolled = !!mine && mine.payment_status !== 'pending';
+        this.pendingApproval = mine?.payment_status === 'pending';
       });
     });
   }

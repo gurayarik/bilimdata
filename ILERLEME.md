@@ -65,16 +65,50 @@ Bu dosya, `CLAUDE.md`'deki roadmap'e göre şu ana kadar tamamlanan işleri öze
 - Backend: `CourseOut`'a `provider`/`external_url`/`coupon_code` eklendi (mevcut `select("*")` sayesinde router değişikliği gerekmedi).
 - Frontend: `course-card`'da Udemy rozeti + "Ücretsiz" etiketi; `course-detail`'de `provider==='udemy'` durumunda iç kayıt akışı yerine "Udemy'de Satın Al/Ücretsiz Al" CTA'sı (yeni sekmede `external_url`'e gider) + kupon notu; müfredat bölümü Udemy kurslarında (section yoksa) hiç gösterilmiyor; anasayfaya ayrı bir **"Udemy Eğitimlerimiz"** bölümü eklendi.
 
+## Faz 4 — Erişim Kontrolü & Kayıt & Admin Paneli ✅
+
+- **Backend:** `backend/app/models/admin.py` (Create/Update Pydantic modelleri) + `admin.py` router tamamen genişletildi:
+  - Kurs: `GET/POST/PUT/DELETE /admin/courses` (Udemy alanları dahil).
+  - Bölüm: `GET/POST /admin/courses/{id}/sections`, `PUT/DELETE /admin/sections/{id}`.
+  - Ders: `POST /admin/sections/{id}/lessons`, `PUT/DELETE /admin/lessons/{id}`.
+  - Blog: `GET/POST/PUT/DELETE /admin/blog`.
+  - `GET /admin/instructors` (dropdown için).
+  - Enrollment onayı (`GET /admin/enrollments/pending`, `PUT .../approve`) genişletildi — artık kurs başlığı ve kullanıcı adını da join'li döndürüyor.
+  - Tüm endpoint'ler `require_admin` ile korunuyor; uçtan uca test edildi (create→list→update→delete akışı, cascade silme, 401/403 kontrolü).
+- **Frontend:** `core/services/admin.service.ts`, `core/guards/admin.guard.ts` (rol kontrolü, backend zaten korunuyor — bu ikinci savunma katmanı), `features/admin/shared/admin-nav.component.ts` (sekme navigasyonu).
+  - `course-editor`, `lesson-editor` (kurs seç → bölüm/ders ağacı, satır içi ekle/sil), `blog-editor`, `enrollment-approval` — hepsi gerçek CRUD işlevselliğiyle dolduruldu (placeholder'lar kaldırıldı).
+- **Test için:** `arikguray@gmail.com` hesabının `profiles.role` alanı elle `'admin'` yapıldı (`d0b6f880-8301-4f17-b734-b86956dbf353`).
+- **Kritik düzeltme — enrollment/erişim mantığı:** `POST /enrollments` daha önce kursun fiyatına bakmaksızın her zaman `payment_status='free'` atıyordu; `free` ise erişim kontrolünde (`lessons.py`/`deps.py`) tam erişim veren statülerden biri olduğu için **ücretli kurslara bile ödemesiz anında tam erişim** veriliyordu. Düzeltildi: kurs gerçekten ücretsizse (`price`/`discount_price` = 0) `free` statüsüyle anında erişim; ücretliyse `pending` statüsüyle oluşturulur ve admin panelden (banka havalesi vb. harici bir doğrulamayla) onaylanana kadar derslere erişim açılmaz. Tekrar kayıt denemesi mevcut statüyü geriye düşürmüyor. `GET /admin/enrollments/pending` filtresi de `free`'den `pending`'e çevrildi. Bu hata nedeniyle oluşmuş 2 test kaydı ve 4 gerçek kursun yanlış sıfırlanmış `discount_price` değeri elle düzeltildi.
+
+## Çoklu Eğitmen Başvuru/Onay Sistemi + Ders Kaynağı Yükleme ✅
+
+CLAUDE.md v1'de "çoklu eğitmen marketplace modeli yok" diyordu; kullanıcı bilinçli olarak bu kapsamı genişletti. Video yükleme tarafında tam otomasyon (YouTube'a relay + kanal editör daveti) teknik olarak mümkün olmadığından (YouTube Data API'de kanal yöneticisi ekleme endpoint'i yok, video upload OAuth + Google'ın "hassas kapsam" doğrulamasını gerektirir) basitleştirilmiş bir model uygulandı: eğitmen videosunu kendi YouTube Studio'sunda yükler (siz elle editör daveti gönderdikten sonra), platforma yalnızca **video ID** girilir; PDF/slayt materyalleri ise doğrudan **Supabase Storage**'a yüklenir.
+
+- **Şema:** `instructor_applications` tablosu (`0011`) + `lesson-resources` Storage bucket'ı (`0012`).
+- **Backend:** `require_instructor_or_admin` + `get_instructor_id_for_user` (`core/security.py`); `POST/GET /instructor-applications` (kullanıcı başvurusu, KVKK onayı zorunlu); admin'de `GET/PUT /admin/instructor-applications/{id}/approve|reject` (onayda `instructors` satırı otomatik oluşturulur/eşleştirilir, `profiles.role='instructor'` yapılır, yanıtta "kanala editör ekle" hatırlatması + kullanıcı e-postası döner); yeni `routers/instructor.py` — eğitmenin **yalnızca kendi** kurs/bölüm/ders'lerini yönetebildiği tam CRUD (sahiplik her yazma işleminde doğrulanıyor, başka eğitmenin kaydına 403); `services/storage_service.py` ile PDF/slayt yükleme (hem `/admin/lessons/{id}/resources` hem `/instructor/lessons/{id}/resources`).
+- **Frontend:** `/become-instructor` başvuru sayfası (KVKK metni + onay kutusu + durum gösterimi), admin panelinde yeni "Eğitmen Başvuruları" sekmesi, `/instructor/courses` ve `/instructor/lessons` (kendi kurs/ders yönetimi + dosya yükleme input'u + kaynak listesi/silme), dashboard'da role göre "Eğitmen Ol" / "Eğitmen Panelim" CTA'sı.
+- **Düzeltilen bug:** `instructor_applications` tablosunun `profiles`'a iki farklı FK'si olduğu için (`user_id`, `reviewed_by`) PostgREST embed sorgusu belirsizlik hatası veriyordu; `profiles!instructor_applications_user_id_fkey` ile FK adı açıkça belirtilerek çözüldü.
+- Uçtan uca test edildi: başvuru → admin onayı → rol değişimi → kendi kurs oluşturma → başka eğitmenin erişememesi (403) → PDF yükleyip `lessons.resources`'a kalıcı olarak eklenmesi.
+
 ---
 
 ## Genel Notlar / Ortam
 
 - Backend Python bağımlılıkları proje-özel `.venv` içinde (`backend/.venv`) — global Python'a kurulmuyor.
 - Geliştirme sunucuları: `uvicorn app.main:app --port 8000` (backend), `ng serve --port 4200` (frontend).
-- Supabase migration'ları sırayla (`0001` → `0010`) SQL Editor'de elle çalıştırılıyor (proje CLI kurulu değil).
+- Supabase migration'ları sırayla (`0001` → `0012`) SQL Editor'de elle çalıştırılıyor (proje CLI kurulu değil).
 
-## Sırada: Faz 4 — Erişim Kontrolü & Kayıt & Admin Paneli
+## ⚠️ Commit Durumu
 
-- v1 ödeme akışı: manuel/ücretsiz kayıt (`payment_status='free'`, admin onayı).
-- Angular admin modülü (`features/admin/`): kurs/ders/blog CRUD, enrollment onaylama — şu an placeholder bileşenler var, gerçek işlevsellik eklenecek. Kurs formu `provider`/`external_url`/`coupon_code` alanlarını da (Udemy kursu ekleme/düzenleme için) içerecek.
-- Backend `admin.py` router'ı zaten iskelet halinde mevcut (Faz 0'da eklendi), gerçek CRUD mantığı ve admin rol kontrolü ile genişletilecek.
+Son commit `a65e5e9` (Faz 0-3 + Udemy entegrasyonu). **O commit'ten sonra yapılan her şey henüz commit edilmedi** (33 dosya): Faz 4'ün tamamı (admin paneli), Udemy fiyat gösterimi bug'ı, enrollment/erişim mantığı düzeltmesi, ve tüm "Çoklu Eğitmen Başvuru/Onay Sistemi" özelliği. Bir sonraki oturuma başlarken önce bu değişiklikleri commit'lemek gerekiyor.
+
+## Şu Anda Neredeyiz / Sırada Ne Var
+
+Tamamlanan: **Faz 0 → Faz 4** + plan dışı iki ek (Udemy entegrasyonu, çoklu eğitmen sistemi). CLAUDE.md roadmap'ine göre kalanlar:
+
+- **Faz 5 — Ödeme Entegrasyonu:** v1 kapsamı dışında bırakıldı (bilinçli karar — manuel/pending onay akışı bunun yerine kullanılıyor). Gerçek Iyzico/Stripe entegrasyonu v2'de.
+- **Faz 6 — Blog Modülü:** Admin panelinde blog CRUD zaten çalışıyor (`/admin/blog`); ama kullanıcı tarafındaki `blog-list`/`blog-detail` sayfaları hâlâ placeholder — bunların doldurulması gerekiyor.
+- **Faz 7 — AI Özetleme:** Backend'de `POST /blog/{id}/summarize` iskeleti zaten var (Faz 0'dan, `ai_service.py` kullanıyor) ama uçtan uca test edilmedi, frontend'de özet gösterimi yok.
+- **Faz 8 — Kullanıcı Paneli, Sertifika & Yorumlar:** İlerleme takibi (`lesson_progress` tablosu var ama hiç kullanılmıyor), sertifika üretimi (`certificate_service.py` iskeleti Faz 0'dan beri var, hiç tetiklenmedi/test edilmedi), kurs yorumları/değerlendirme (`reviews` tablosu var, backend endpoint'i var ama frontend'de hiç UI yok).
+
+Bir sonraki oturumda kullanıcıyla hangi fazdan devam edileceği netleştirilecek.

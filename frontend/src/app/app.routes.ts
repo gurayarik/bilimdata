@@ -1,5 +1,7 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
+import { adminGuard } from './core/guards/admin.guard';
+import { instructorGuard } from './core/guards/instructor.guard';
 
 export const routes: Routes = [
   {
@@ -57,8 +59,22 @@ export const routes: Routes = [
   },
   {
     path: 'admin',
-    canActivate: [authGuard],
+    canActivate: [authGuard, adminGuard],
     loadChildren: () => import('./features/admin/admin.routes').then((m) => m.ADMIN_ROUTES),
+  },
+  {
+    path: 'become-instructor',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./features/instructor/apply/apply.component').then(
+        (m) => m.InstructorApplyComponent
+      ),
+  },
+  {
+    path: 'instructor',
+    canActivate: [authGuard, instructorGuard],
+    loadChildren: () =>
+      import('./features/instructor/instructor.routes').then((m) => m.INSTRUCTOR_ROUTES),
   },
   { path: '**', redirectTo: '' },
 ];

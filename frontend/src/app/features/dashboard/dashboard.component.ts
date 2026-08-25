@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 import { Profile, ProfileService } from '../../core/services/profile.service';
 import { SupabaseService } from '../../core/services/supabase.service';
@@ -7,7 +7,7 @@ import { SupabaseService } from '../../core/services/supabase.service';
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [TranslatePipe],
+  imports: [TranslatePipe, RouterLink],
   template: `
     <section class="mx-auto max-w-3xl px-4 py-12">
       <h1 class="text-2xl font-bold text-brand-900">{{ 'dashboard.title' | translate }}</h1>
@@ -19,6 +19,22 @@ import { SupabaseService } from '../../core/services/supabase.service';
           }}
         </p>
       }
+
+      @if (profile?.role === 'student') {
+        <div class="mt-6 rounded-md border border-accent-500/40 bg-accent-500/10 px-4 py-3">
+          <p class="text-sm text-brand-900">Kendi eğitim içeriklerinizi platformumuzda yayınlamak ister misiniz?</p>
+          <a routerLink="/become-instructor" class="mt-2 inline-block text-sm font-semibold text-brand-900 underline">
+            Eğitmen Ol →
+          </a>
+        </div>
+      } @else if (profile?.role === 'instructor') {
+        <div class="mt-6 rounded-md border border-slate-200 px-4 py-3">
+          <a routerLink="/instructor/courses" class="text-sm font-semibold text-brand-900 hover:underline">
+            Eğitmen Panelim →
+          </a>
+        </div>
+      }
+
       <button
         type="button"
         class="mt-6 rounded-md border border-slate-300 px-4 py-2 text-sm font-semibold text-brand-900 hover:bg-slate-50"
