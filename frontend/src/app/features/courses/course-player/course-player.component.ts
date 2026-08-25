@@ -40,93 +40,136 @@ function loadYouTubeApi(): Promise<void> {
   standalone: true,
   imports: [RouterLink, TranslatePipe],
   template: `
-    <section class="mx-auto grid max-w-6xl grid-cols-1 gap-6 px-4 py-8 md:grid-cols-3">
-      <div class="md:col-span-2">
-        @if (videoUrl) {
-          <div class="overflow-hidden rounded-lg border border-brand-900/10 shadow-sm">
-            <div class="flex items-center justify-between bg-brand-900 px-4 py-2">
-              <span class="text-sm font-bold tracking-wide text-white">BilimData</span>
-              <span class="h-1 w-10 rounded-full bg-accent-500"></span>
+    <section class="mx-auto max-w-6xl px-4 py-8">
+      <nav class="mb-6 flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 pb-4">
+        <a
+          [routerLink]="['/courses', slug]"
+          class="flex items-center gap-1 text-sm font-semibold text-brand-900 hover:text-accent-600"
+        >
+          ← {{ courseTitle || ('player.back_to_course' | translate) }}
+        </a>
+        @if (totalLessons) {
+          <span class="text-sm text-slate-500">
+            {{ completedCount }} / {{ totalLessons }} ders tamamlandı · %{{ progressPercent }}
+          </span>
+        }
+      </nav>
+
+      <div class="grid grid-cols-1 gap-6 md:grid-cols-3">
+        <div class="md:col-span-2">
+          @if (videoUrl) {
+            <div class="overflow-hidden rounded-lg border border-brand-900/10 shadow-sm">
+              <div class="flex items-center justify-between bg-brand-900 px-4 py-2">
+                <span class="text-sm font-bold tracking-wide text-white">BilimData</span>
+                <span class="h-1 w-10 rounded-full bg-accent-500"></span>
+              </div>
+              <div class="aspect-video w-full bg-black">
+                <iframe
+                  id="yt-player"
+                  [src]="videoUrl"
+                  class="h-full w-full"
+                  title="lesson video"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowfullscreen
+                ></iframe>
+              </div>
             </div>
-            <div class="aspect-video w-full bg-black">
-              <iframe
-                id="yt-player"
-                [src]="videoUrl"
-                class="h-full w-full"
-                title="lesson video"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowfullscreen
-              ></iframe>
+            <h1 class="mt-4 text-xl font-bold text-brand-900">{{ lessonTitle }}</h1>
+            @if (lessonDescription) {
+              <p class="mt-2 text-sm text-slate-600">{{ lessonDescription }}</p>
+            }
+            <div class="mt-5 flex flex-wrap items-center gap-3 border-t border-slate-200 pt-4">
+              <button
+                type="button"
+                class="rounded-md border border-accent-500 px-4 py-2 text-sm font-semibold text-accent-600 hover:bg-accent-500/10 disabled:opacity-50"
+                [disabled]="markingComplete || completedLessonIds.has(lessonId)"
+                (click)="markComplete()"
+              >
+                {{ completedLessonIds.has(lessonId) ? '✅ Tamamlandı' : 'Dersi Tamamladım Olarak İşaretle' }}
+              </button>
+              @if (advancing) {
+                <span class="text-sm text-slate-500">Sonraki derse geçiliyor…</span>
+              }
+              <div class="ml-auto flex gap-2">
+                <button
+                  type="button"
+                  class="rounded-md border border-slate-300 px-3 py-2 text-sm font-semibold text-brand-900 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+                  [disabled]="!previousLesson"
+                  (click)="previousLesson && goTo(previousLesson)"
+                >
+                  ‹ Önceki Ders
+                </button>
+                <button
+                  type="button"
+                  class="rounded-md bg-brand-900 px-3 py-2 text-sm font-semibold text-white hover:bg-brand-900/90 disabled:cursor-not-allowed disabled:opacity-40"
+                  [disabled]="!nextLesson"
+                  (click)="nextLesson && goTo(nextLesson)"
+                >
+                  Sonraki Ders ›
+                </button>
+              </div>
             </div>
-          </div>
-          <h1 class="mt-4 text-xl font-bold text-brand-900">{{ lessonTitle }}</h1>
-          @if (lessonDescription) {
-            <p class="mt-2 text-sm text-slate-600">{{ lessonDescription }}</p>
+          } @else if (accessError === 401) {
+            <div class="rounded-lg border border-slate-200 p-8 text-center">
+              <p class="text-slate-600">{{ 'player.need_login' | translate }}</p>
+              <a routerLink="/auth/login" class="mt-4 inline-block rounded-md bg-accent-500 px-5 py-2.5 font-semibold text-brand-900 hover:bg-accent-600">
+                {{ 'header.login' | translate }}
+              </a>
+            </div>
+          } @else if (accessError === 403) {
+            <div class="rounded-lg border border-slate-200 p-8 text-center">
+              <p class="text-slate-600">{{ 'player.need_enrollment' | translate }}</p>
+              <a
+                [routerLink]="['/courses', slug]"
+                class="mt-4 inline-block rounded-md bg-accent-500 px-5 py-2.5 font-semibold text-brand-900 hover:bg-accent-600"
+              >
+                {{ 'player.back_to_course' | translate }}
+              </a>
+            </div>
           }
-          <div class="mt-4 flex items-center gap-3">
-            <button
-              type="button"
-              class="rounded-md border border-accent-500 px-4 py-2 text-sm font-semibold text-accent-600 hover:bg-accent-500/10 disabled:opacity-50"
-              [disabled]="markingComplete || completedLessonIds.has(lessonId)"
-              (click)="markComplete()"
-            >
-              {{ completedLessonIds.has(lessonId) ? '✅ Tamamlandı' : 'Dersi Tamamladım Olarak İşaretle' }}
-            </button>
-            @if (advancing) {
-              <span class="text-sm text-slate-500">Sonraki derse geçiliyor…</span>
+        </div>
+
+        <aside class="md:sticky md:top-24 md:h-fit">
+          <h2 class="font-semibold text-brand-900">{{ 'course_detail.curriculum' | translate }}</h2>
+          <div class="mt-2 flex items-center gap-2 text-sm text-slate-500">
+            <div class="h-2 flex-1 overflow-hidden rounded-full bg-slate-100">
+              <div class="h-full bg-accent-500 transition-all" [style.width.%]="progressPercent"></div>
+            </div>
+            <span>%{{ progressPercent }}</span>
+          </div>
+          <div class="mt-3 flex max-h-[70vh] flex-col gap-3 overflow-y-auto pr-1">
+            @for (section of sections; track section.id) {
+              <div class="overflow-hidden rounded-lg border border-slate-200">
+                <div class="flex items-center justify-between border-b border-slate-200 bg-slate-50 px-3 py-2">
+                  <span class="text-sm font-semibold text-brand-900">{{ section.title }}</span>
+                  <span class="text-xs font-medium text-slate-400">
+                    {{ sectionCompletedCount(section) }}/{{ section.lessons.length }}
+                  </span>
+                </div>
+                <ul>
+                  @for (lesson of section.lessons; track lesson.id) {
+                    <li
+                      class="border-b border-l-4 border-slate-100 px-3 py-2 text-sm last:border-b-0"
+                      [class]="lesson.id === lessonId ? 'border-l-accent-500 bg-accent-500/10' : 'border-l-transparent'"
+                    >
+                      <a [routerLink]="['/courses', slug, 'lessons', lesson.id]" class="flex items-center justify-between gap-2 text-brand-900">
+                        <span [class.font-semibold]="lesson.id === lessonId" class="min-w-0">
+                          {{ lessonIcon(lesson) }} {{ lesson.title }}
+                          @if (lesson.id === lessonId) {
+                            <span class="ml-1 text-xs font-semibold text-accent-600">(şu an izliyorsun)</span>
+                          }
+                        </span>
+                        @if (lesson.duration_seconds) {
+                          <span class="shrink-0 text-xs text-slate-400">{{ formatDuration(lesson.duration_seconds) }}</span>
+                        }
+                      </a>
+                    </li>
+                  }
+                </ul>
+              </div>
             }
           </div>
-        } @else if (accessError === 401) {
-          <div class="rounded-lg border border-slate-200 p-8 text-center">
-            <p class="text-slate-600">{{ 'player.need_login' | translate }}</p>
-            <a routerLink="/auth/login" class="mt-4 inline-block rounded-md bg-accent-500 px-5 py-2.5 font-semibold text-brand-900 hover:bg-accent-600">
-              {{ 'header.login' | translate }}
-            </a>
-          </div>
-        } @else if (accessError === 403) {
-          <div class="rounded-lg border border-slate-200 p-8 text-center">
-            <p class="text-slate-600">{{ 'player.need_enrollment' | translate }}</p>
-            <a
-              [routerLink]="['/courses', slug]"
-              class="mt-4 inline-block rounded-md bg-accent-500 px-5 py-2.5 font-semibold text-brand-900 hover:bg-accent-600"
-            >
-              {{ 'player.back_to_course' | translate }}
-            </a>
-          </div>
-        }
-      </div>
-
-      <div>
-        <h2 class="font-semibold text-brand-900">{{ 'course_detail.curriculum' | translate }}</h2>
-        <div class="mt-2 flex items-center gap-2 text-sm text-slate-500">
-          <div class="h-2 flex-1 overflow-hidden rounded-full bg-slate-100">
-            <div class="h-full bg-accent-500 transition-all" [style.width.%]="progressPercent"></div>
-          </div>
-          <span>%{{ progressPercent }}</span>
-        </div>
-        <div class="mt-3 flex flex-col gap-3">
-          @for (section of sections; track section.id) {
-            <div class="rounded-lg border border-slate-200">
-              <ul>
-                @for (lesson of section.lessons; track lesson.id) {
-                  <li
-                    class="border-b border-l-4 border-slate-100 px-3 py-2 text-sm last:border-b-0"
-                    [class]="lesson.id === lessonId ? 'border-l-accent-500 bg-accent-500/10' : 'border-l-transparent'"
-                  >
-                    <a [routerLink]="['/courses', slug, 'lessons', lesson.id]" class="text-brand-900">
-                      <span [class.font-semibold]="lesson.id === lessonId">
-                        {{ lessonIcon(lesson) }} {{ lesson.title }}
-                      </span>
-                      @if (lesson.id === lessonId) {
-                        <span class="ml-1 text-xs font-semibold text-accent-600">(şu an izliyorsun)</span>
-                      }
-                    </a>
-                  </li>
-                }
-              </ul>
-            </div>
-          }
-        </div>
+        </aside>
       </div>
     </section>
   `,
@@ -136,6 +179,7 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
   lessonId = '';
   lessonTitle = '';
   lessonDescription: string | null = null;
+  courseTitle = '';
   videoUrl: SafeResourceUrl | null = null;
   accessError: 401 | 403 | null = null;
   sections: CurriculumSection[] = [];
@@ -147,6 +191,7 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
   private ytPlayer: any = null;
   private progressPoll: ReturnType<typeof setInterval> | null = null;
   private endedHandled = false;
+  private loadedCourseSlug = '';
 
   constructor(
     private readonly route: ActivatedRoute,
@@ -164,6 +209,10 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
       this.loadLesson();
       this.courseService.getCurriculum(this.slug).subscribe((sections) => (this.sections = sections));
       this.loadProgress();
+      if (this.loadedCourseSlug !== this.slug) {
+        this.loadedCourseSlug = this.slug;
+        this.courseService.getBySlug(this.slug).subscribe((course) => (this.courseTitle = course.title));
+      }
     });
   }
 
@@ -171,10 +220,46 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
     this.destroyPlayer();
   }
 
+  get flatLessons(): CurriculumLesson[] {
+    return this.sections.flatMap((section) => section.lessons);
+  }
+
+  get totalLessons(): number {
+    return this.flatLessons.length;
+  }
+
+  get completedCount(): number {
+    return this.flatLessons.filter((lesson) => this.completedLessonIds.has(lesson.id)).length;
+  }
+
+  get previousLesson(): CurriculumLesson | null {
+    const flat = this.flatLessons;
+    const index = flat.findIndex((lesson) => lesson.id === this.lessonId);
+    return index > 0 ? flat[index - 1] : null;
+  }
+
+  get nextLesson(): CurriculumLesson | null {
+    return this.findNextLesson();
+  }
+
+  goTo(lesson: CurriculumLesson) {
+    this.router.navigate(['/courses', this.slug, 'lessons', lesson.id]);
+  }
+
   lessonIcon(lesson: CurriculumLesson): string {
     if (this.completedLessonIds.has(lesson.id)) return '✅';
     if (lesson.id === this.lessonId) return '▶';
     return lesson.is_preview ? '▶' : '🔒';
+  }
+
+  sectionCompletedCount(section: CurriculumSection): number {
+    return section.lessons.filter((lesson) => this.completedLessonIds.has(lesson.id)).length;
+  }
+
+  formatDuration(seconds: number) {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${m}:${s.toString().padStart(2, '0')}`;
   }
 
   private loadProgress() {
@@ -291,7 +376,7 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
   }
 
   private findNextLesson(): CurriculumLesson | null {
-    const flat = this.sections.flatMap((section) => section.lessons);
+    const flat = this.flatLessons;
     const index = flat.findIndex((lesson) => lesson.id === this.lessonId);
     if (index === -1 || index === flat.length - 1) return null;
     return flat[index + 1];

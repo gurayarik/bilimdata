@@ -156,6 +156,16 @@ Kullanıcı geri bildirimi: (1) dashboard'da kurs kartlarında başlık yerine "
 
 **Devam eden geri bildirim:** İframe artık görünüyor ve aktif ders net ("şu an izliyorsun" etiketi), ancak video sonuna kadar izlendiğinde tamamlandı işaretlenmiyordu. Sebep: YouTube'un `postMessage` tabanlı `ended` olayı, gömülü videonun paylaşım/gizlilik ayarlarına göre bazı videolarda güvenilir tetiklenmeyebiliyor (özellikle özel/kısıtlı paylaşılan eğitmen videolarında). Yedek mekanizma eklendi: oynatıcı hazır olduğunda (`onReady`) 3 saniyede bir `getDuration()`/`getCurrentTime()` ile süre kontrolü yapılıyor, kalan süre ≤1.5 saniyeye düştüğünde de tamamlandı sayılıyor (`checkNearEnd()`), `endedHandled` bayrağıyla çift tetiklenme engelleniyor. Bu, `ended` event'i çalışmasa bile videoyu gerçekten sonuna kadar izleyen kullanıcı için tamamlanmayı yakalar. Not: Bu da JS API köprüsü tamamen kurulamayan (ör. embed'i tümüyle engelleyen) videolarda çalışmayabilir — böyle bir durumda tek güvenilir yol "Dersi Tamamladım Olarak İşaretle" butonu.
 
+## Course Player — Profesyonel Sayfa Düzeni
+
+Kullanıcı isteği: oynatıcı sayfasının etrafı (video hariç, YouTube ToS izin vermiyor) daha profesyonel olsun.
+
+- Üstte kırılabilir bir üst çubuk: "← {{kurs başlığı}}" ile kursa dönüş linki + sağda "X / Y ders tamamlandı · %Z" özeti.
+- Video kartının altına, mevcut "Dersi Tamamladım" butonunun yanına **"‹ Önceki Ders" / "Sonraki Ders ›"** butonları eklendi (müfredattaki sıraya göre devre dışı bırakılıyor — ilk derste "Önceki", son derste "Sonraki" pasif).
+- Sidebar: her bölüm başlığının yanına o bölümün tamamlanma oranı (`sectionCompletedCount()`, ör. "2/5"), her ders satırının sağına süresi (`formatDuration()`) eklendi; liste `max-h-[70vh] overflow-y-auto` ile uzun müfredatlarda taşmıyor; sidebar `md:sticky md:top-24` ile kaydırırken sabit kalıyor.
+- `flatLessons`/`totalLessons`/`completedCount`/`previousLesson`/`nextLesson` getter'ları eklendi; kurs başlığı için `courseService.getBySlug()` bir kez (slug değişmedikçe tekrar çağrılmadan) çekiliyor.
+- Doğrulama: `npx ng build --configuration development` hatasız tamamlandı.
+
 ## Commit Durumu
 
 Faz 8 + video-bitince-otomatik-ilerleme kodu tamamlandı, henüz commit edilmedi (bir sonraki adım commit).
