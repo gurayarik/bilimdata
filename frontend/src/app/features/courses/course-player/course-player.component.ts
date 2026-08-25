@@ -43,15 +43,21 @@ function loadYouTubeApi(): Promise<void> {
     <section class="mx-auto grid max-w-6xl grid-cols-1 gap-6 px-4 py-8 md:grid-cols-3">
       <div class="md:col-span-2">
         @if (videoUrl) {
-          <div class="aspect-video w-full overflow-hidden rounded-lg bg-black">
-            <iframe
-              id="yt-player"
-              [src]="videoUrl"
-              class="h-full w-full"
-              title="lesson video"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowfullscreen
-            ></iframe>
+          <div class="overflow-hidden rounded-lg border border-brand-900/10 shadow-sm">
+            <div class="flex items-center justify-between bg-brand-900 px-4 py-2">
+              <span class="text-sm font-bold tracking-wide text-white">BilimData</span>
+              <span class="h-1 w-10 rounded-full bg-accent-500"></span>
+            </div>
+            <div class="aspect-video w-full bg-black">
+              <iframe
+                id="yt-player"
+                [src]="videoUrl"
+                class="h-full w-full"
+                title="lesson video"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowfullscreen
+              ></iframe>
+            </div>
           </div>
           <h1 class="mt-4 text-xl font-bold text-brand-900">{{ lessonTitle }}</h1>
           @if (lessonDescription) {
