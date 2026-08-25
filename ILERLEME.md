@@ -305,12 +305,24 @@ Kullanıcı isteği: `/auth/login` ve `/auth/register` sayfaları da ikonlu ve m
 
 ## Commit Durumu
 
-Faz 8 + video-bitince-otomatik-ilerleme kodu tamamlandı, henüz commit edilmedi (bir sonraki adım commit).
+Güncel — son commit `bf349ce` ("giriş/kayıt sayfalarını yeniden tasarla, gerçek logo ekle"). Commit edilmemiş değişiklik yok (`git status` temiz).
 
 ## Şu Anda Neredeyiz / Sırada Ne Var
 
-Tamamlanan: **Faz 0 → Faz 4, Faz 6, Faz 7, Faz 8** + dört plan dışı ek (Udemy entegrasyonu, çoklu eğitmen sistemi, blog etkileşim/kullanıcı yazıları, zengin metin editörlü `/blog/write`).
+Tamamlanan: **Faz 0 → Faz 4, Faz 6, Faz 7, Faz 8** (CLAUDE.md roadmap'inin Faz 5 — Ödeme dışındaki tamamı) + çok sayıda plan dışı ek:
 
-- **Faz 5 — Ödeme Entegrasyonu:** v1 kapsamı dışında bırakıldı (bilinçli karar — manuel/pending onay akışı bunun yerine kullanılıyor). Gerçek Iyzico/Stripe entegrasyonu v2'de.
+- Udemy kupon entegrasyonu → genelleştirilmiş **çoklu platform** desteği (`internal`/`udemy`/`external`), BilimData'nın resmi kursları ile eğitmenlerin kendi tanıttığı kursların ayrımı (`instructor.is_platform_official`)
+- Çoklu eğitmen sistemi (başvuru/onay, kendi kurs/ders yönetimi, artık Udemy/harici platform tanıtımı da yapabiliyor)
+- Blog etkileşimi (yorum/beğeni), kullanıcı blog yazıları, zengin metin editörlü `/blog/write`
+- **Video bitince otomatik ilerleme + sonraki derse geçiş** (YouTube IFrame API + süre bazlı yedek kontrol)
+- **Course-player profesyonel yeniden tasarımı** (akordeon müfredat, önceki/sonraki ders, ilerleme özeti)
+- **Dashboard**: istatistik kartları, kapak görselli kurs grid'i, **AI destekli ilerleme koçu** (video bazlı konu tekrarı, HTML biçimli)
+- **AI destekli sınav modülü**: her 20 ders için 10 soruluk, önbelleklenen, sınırsız denemeli çoktan seçmeli sınav
+- **RAG tarzı kurs sohbet asistanı**: kurs müfredatı+fiyatını bağlam alan, günlük 40 mesaj limitli, dil-duyarlı (TR/EN) sohbet widget'ı
+- AI maliyeti için tüm çağrılar Haiku modeline geçirildi
+- **Eğitmen paneli, ana sayfa, giriş/kayıt sayfaları** dashboard'la tutarlı, modern bir tasarıma kavuşturuldu; gerçek bir **logo** (`LogoComponent`) tasarlandı
+- Özel **`/deals` (Fırsatlar) sayfası**: kopyalanabilir kupon kodlu, iki bölümlü (BilimData Udemy / eğitmen tanıtımları) "deal card" tasarımı
+- Router'da **anchor scrolling hiç etkin değildi** — kök neden bulunup düzeltildi, tüm `fragment` linkleri artık çalışıyor
+- i18n boşlukları (dashboard, kurs sohbeti) kapatıldı; AI çıktıları da seçili dile göre üretiliyor
 
-CLAUDE.md roadmap'inin geri kalanı (Faz 5 hariç) tamamlandı. Bir sonraki oturumda önce commit atılmalı, sonra kullanıcıyla yeni yön (ör. ödeme entegrasyonu, ek iyileştirmeler) netleştirilecek.
+**Kalan:** Yalnızca **Faz 5 — Ödeme Entegrasyonu** (bilinçli olarak v2'ye ertelendi, manuel/pending onay akışı v1'de yeterli görülüyor). Aktif bir hata veya yarım kalmış iş yok. Bir sonraki oturumda kullanıcıyla yeni yön netleştirilecek (ör. ödeme entegrasyonu veya başka bir sayfanın/özelliğin iyileştirilmesi).
