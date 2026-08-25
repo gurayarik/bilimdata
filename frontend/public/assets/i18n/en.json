@@ -90,7 +90,10 @@
     "coach_show": "Progress Coach",
     "coach_hide": "Hide Coach",
     "coach_loading": "Your coach is preparing your feedback…",
-    "coach_label": "Your Education Coach Says"
+    "coach_label": "Your Education Coach Says",
+    "continue_cta": "Continue",
+    "start_cta": "Start",
+    "browse_courses_cta": "Browse Courses"
   },
   "course_detail": {
     "about": "About This Course",

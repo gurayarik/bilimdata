@@ -223,6 +223,18 @@ Kullanıcı geri bildirimi: (1) dil İngilizce'ye çevrildiğinde kurs sohbet as
 - **AI içerikli metinlerin dili de düzeltildi:** Hem kurs sohbet asistanı hem de ilerleme koçu artık `ui_language` parametresi alıyor (`TranslateService.currentLang()`'den gönderiliyor) — kurs `language` alanı `'en'` **veya** kullanıcının seçili arayüz dili `'en'` ise yanıt İngilizce, aksi halde Türkçe üretiliyor (`generate_progress_coaching()` ve `chat_with_course_assistant()`'a `reply_language` parametresi eklendi, `GET /courses/{slug}/coach` artık `ui_language` query param'ı kabul ediyor).
 - Doğrulama: `ui_language=en` ile hem `/courses/{slug}/coach` hem `/courses/{slug}/chat` İngilizce, HTML biçimli yanıt döndürdüğü doğrulandı. `npx ng build --configuration development` hatasız.
 
+## Dashboard Yeniden Tasarımı
+
+Kullanıcı geri bildirimi: dashboard çok sade kalıyordu, daha kullanışlı/görsel bir tasarım istendi.
+
+- **Hero banner:** Koyu lacivert gradyan (`brand-900` → `brand-800`) kart; kullanıcının baş harflerinden oluşan bir avatar rozeti (`initials` getter — isim yoksa 👤), başlık/karşılama metni, sağda "Çıkış Yap" (artık sayfa sonunda değil, üstte kompakt bir buton). Eğitmen ol / eğitmen paneli CTA'ları banner içine, yarı saydam bir kutuya taşındı.
+- **İstatistik kartları:** İkon eklendi (📚/✅/📈/🎓), beyaz kart + gölge ile daha belirgin.
+- **"Tamamladığım Eğitimler"** artık yatay, yuvarlak "chip" listesi (kompakt, sertifika linkiyle).
+- **"Eğitimlerim"** artık düz liste değil, **kapak görselli kart grid'i** (`sm:grid-cols-2`): her kartta kurs kapak görseli (`enrollment.course?.cover_image_url` — yoksa 📘 placeholder), %100 tamamlanan kurslarda görsel üzerinde "✅ Tamamlanan" rozeti, ilerleme çubuğu, ve üç yuvarlak (pill) aksiyon butonu: **"Devam Et"/"Başla"** (ilerlemeye göre metin değişiyor) + sertifika + ilerleme koçu.
+- **Boş durum:** Artık düz bir cümle değil, ikon + açıklama + "Eğitimleri Keşfet" CTA'sı olan kesikli çerçeveli bir kart.
+- Yeni i18n anahtarları: `dashboard.continue_cta`, `dashboard.start_cta`, `dashboard.browse_courses_cta` (tr/en).
+- Doğrulama: `npx ng build --configuration development` hatasız (yalnızca zararsız bir Angular "gereksiz optional chaining" uyarısı var, hata değil).
+
 ## Commit Durumu
 
 Faz 8 + video-bitince-otomatik-ilerleme kodu tamamlandı, henüz commit edilmedi (bir sonraki adım commit).
