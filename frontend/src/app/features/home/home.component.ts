@@ -67,6 +67,7 @@ import { CtaButtonComponent } from '../../shared/components/cta-button/cta-butto
       </div>
     </section>
 
+    <div id="advantages" class="scroll-mt-20"></div>
     @if (udemyCourses.length) {
       <section class="mx-auto max-w-6xl px-4 py-16">
         <h2 class="text-center text-2xl font-bold text-brand-900">
@@ -99,7 +100,7 @@ import { CtaButtonComponent } from '../../shared/components/cta-button/cta-butto
       </section>
     }
 
-    <section id="advantages" class="bg-brand-50 py-16">
+    <section id="student-benefits" class="bg-brand-50 py-16">
       <div class="mx-auto max-w-6xl px-4">
         <h2 class="text-center text-2xl font-bold text-brand-900">
           {{ 'advantages.title' | translate }}

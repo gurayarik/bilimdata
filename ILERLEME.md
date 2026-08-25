@@ -263,6 +263,8 @@ Kullanıcı isteği (iki aşamalı): önce "kurslar yalnızca Udemy'de değil ba
 - Doğrulama: `npx ng build --configuration development` hatasız. Backend `TestClient` ile `/courses` uçtan uca test edildi — migration henüz uygulanmadan bile (yeni alanlar opsiyonel/varsayılanlı olduğu için) tüm mevcut kurslar doğru şekilde `is_platform_official: true` döndü.
 - **Migration `0017` kullanıcı tarafından henüz Supabase'e uygulanmadı** — SQL Editor'de çalıştırılması bekleniyor.
 
+**Ek düzenleme:** Header'daki "Fırsatlar" nav linki (`fragment="advantages"`) artık genel "Öğrenci Avantajları" kart bölümüne değil, doğrudan yeni eklenen kurs bölümlerine (önce "Udemy Eğitimlerimiz", sonra "Eğitmenlerimizin Diğer Programları") kaydırıyor — `id="advantages"` sabit bir `<div>` çapası olarak bu iki `@if` bloğunun hemen üstüne taşındı (diziler boşken bile çapa her zaman DOM'da var olsun diye). Eski "Öğrenci Avantajları" bölümü içerik olarak aynı kaldı, yalnızca id'si çakışmasın diye `id="student-benefits"` oldu (başka hiçbir yerden referans edilmiyordu).
+
 ## Commit Durumu
 
 Faz 8 + video-bitince-otomatik-ilerleme kodu tamamlandı, henüz commit edilmedi (bir sonraki adım commit).
