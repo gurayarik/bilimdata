@@ -1,11 +1,14 @@
 import { AsyncPipe } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { HttpErrorResponse } from '@angular/common/http';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { TranslatePipe } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { ChatMessage } from '../../../core/models/chat.model';
 import { Course } from '../../../core/models/course.model';
 import { CurriculumSection } from '../../../core/models/lesson.model';
 import { Review, ReviewSummary } from '../../../core/models/review.model';
+import { ChatService } from '../../../core/services/chat.service';
 import { CourseService } from '../../../core/services/course.service';
 import { EnrollmentService } from '../../../core/services/enrollment.service';
 import { ReviewService } from '../../../core/services/review.service';
@@ -210,6 +213,94 @@ import { SupabaseService } from '../../../core/services/supabase.service';
               </a>
             }
           </div>
+
+          @if (session$ | async) {
+            <div class="mt-6 flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-md">
+              <div class="flex items-center gap-3 bg-gradient-to-r from-brand-900 to-brand-800 px-4 py-3 text-white">
+                <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/15 text-lg">
+                  🤖
+                </span>
+                <div class="min-w-0 flex-1">
+                  <p class="text-sm font-bold leading-tight">Kurs Asistanı</p>
+                  <p class="text-xs text-white/60">Müfredat hakkında soru sor</p>
+                </div>
+                <span class="shrink-0 rounded-full bg-white/10 px-2 py-1 text-[11px] font-medium text-white/80">
+                  {{ remainingMessages }}/40
+                </span>
+              </div>
+
+              <div class="flex max-h-96 flex-col gap-3 overflow-y-auto bg-slate-50/60 p-4">
+                @if (!chatMessages.length) {
+                  <div class="flex flex-col items-center gap-2 py-6 text-center">
+                    <span class="text-3xl">💬</span>
+                    <p class="max-w-[220px] text-xs text-slate-500">
+                      Bu eğitimin müfredatı, kapsamı veya kime uygun olduğu hakkında soru sorabilirsin.
+                    </p>
+                  </div>
+                }
+                @for (msg of chatMessages; track $index) {
+                  <div class="flex items-end gap-2" [class.flex-row-reverse]="msg.role === 'user'">
+                    <span
+                      class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs"
+                      [class]="msg.role === 'user' ? 'bg-accent-500/20' : 'bg-brand-900/10'"
+                    >
+                      {{ msg.role === 'user' ? '🙂' : '🤖' }}
+                    </span>
+                    @if (msg.role === 'user') {
+                      <p class="max-w-[80%] rounded-2xl rounded-br-sm bg-accent-500 px-3.5 py-2 text-sm text-brand-900 shadow-sm">
+                        {{ msg.content }}
+                      </p>
+                    } @else {
+                      <div
+                        class="rich-content max-w-[80%] rounded-2xl rounded-bl-sm border border-slate-200 bg-white px-3.5 py-2 text-sm text-slate-700 shadow-sm"
+                        [innerHTML]="msg.content"
+                      ></div>
+                    }
+                  </div>
+                }
+                @if (chatLoading) {
+                  <div class="flex items-end gap-2">
+                    <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand-900/10 text-xs">
+                      🤖
+                    </span>
+                    <span class="rounded-2xl rounded-bl-sm border border-slate-200 bg-white px-3.5 py-2 text-sm text-slate-400 shadow-sm">
+                      Yazıyor…
+                    </span>
+                  </div>
+                }
+              </div>
+
+              @if (chatError) {
+                <p class="bg-red-50 px-4 py-2 text-xs text-red-600">{{ chatError }}</p>
+              }
+
+              <form class="flex items-center gap-2 border-t border-slate-200 bg-white p-3" (ngSubmit)="sendChatMessage()">
+                <input
+                  class="flex-1 rounded-full border border-slate-300 px-4 py-2 text-sm focus:border-accent-500 focus:outline-none"
+                  [(ngModel)]="chatInput"
+                  name="chatInput"
+                  placeholder="Bir soru yaz…"
+                  [disabled]="chatLoading || remainingMessages <= 0"
+                />
+                <button
+                  type="submit"
+                  class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-accent-500 text-brand-900 hover:bg-accent-600 disabled:opacity-40"
+                  [disabled]="chatLoading || !chatInput.trim() || remainingMessages <= 0"
+                  aria-label="Gönder"
+                >
+                  ➤
+                </button>
+              </form>
+            </div>
+          } @else {
+            <div class="mt-6 rounded-2xl border border-slate-200 bg-white p-5 text-center shadow-sm">
+              <span class="text-2xl">💬</span>
+              <p class="mt-2 text-sm text-slate-500">
+                Kurs asistanına soru sorabilmek için
+                <a routerLink="/auth/login" class="font-semibold text-brand-900 underline">giriş yap</a>.
+              </p>
+            </div>
+          }
         </div>
       </section>
     }
@@ -224,6 +315,11 @@ export class CourseDetailComponent implements OnInit {
   reviews: Review[] = [];
   reviewSummary: ReviewSummary = { average: 0, count: 0 };
   reviewForm: { rating: number; comment: string } = { rating: 0, comment: '' };
+  chatMessages: ChatMessage[] = [];
+  chatInput = '';
+  chatLoading = false;
+  chatError = '';
+  remainingMessages = 40;
   readonly session$;
 
   constructor(
@@ -231,6 +327,8 @@ export class CourseDetailComponent implements OnInit {
     private readonly courseService: CourseService,
     private readonly enrollmentService: EnrollmentService,
     private readonly reviewService: ReviewService,
+    private readonly chatService: ChatService,
+    private readonly translate: TranslateService,
     private readonly supabase: SupabaseService
   ) {
     this.session$ = this.supabase.session$;
@@ -258,6 +356,31 @@ export class CourseDetailComponent implements OnInit {
         this.reviewForm = { rating: 0, comment: '' };
         this.loadReviews(this.course!.id);
       });
+  }
+
+  sendChatMessage() {
+    if (!this.course || !this.chatInput.trim() || this.chatLoading) return;
+    const question = this.chatInput.trim();
+    const history = [...this.chatMessages];
+    this.chatMessages = [...this.chatMessages, { role: 'user', content: question }];
+    this.chatInput = '';
+    this.chatLoading = true;
+    this.chatError = '';
+    this.chatService
+      .sendMessage(this.course.slug, question, history, this.translate.currentLang() || 'tr')
+      .subscribe({
+      next: (result) => {
+        this.chatLoading = false;
+        this.remainingMessages = result.remaining_messages;
+        this.chatMessages = [...this.chatMessages, { role: 'assistant', content: result.reply }];
+      },
+      error: (err: HttpErrorResponse) => {
+        this.chatLoading = false;
+        this.chatMessages = this.chatMessages.slice(0, -1);
+        this.chatError =
+          err.status === 429 ? err.error?.detail || 'Günlük soru limitine ulaştın.' : 'Mesaj gönderilemedi, tekrar dener misin?';
+      },
+    });
   }
 
   private loadReviews(courseId: string) {

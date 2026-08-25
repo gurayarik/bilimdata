@@ -143,3 +143,56 @@ Kurallar:
     cleaned = re.sub(r"^```(?:json)?\s*|\s*```$", "", raw_text.strip())
     questions = json.loads(cleaned)
     return questions
+
+
+async def chat_with_course_assistant(
+    course_context: str, history: list[dict], message: str, reply_language: str = "tr"
+) -> str:
+    """Bir kursun müfredat/açıklama bilgisini bağlam (RAG benzeri) olarak
+    kullanan, o kursa özel soruları yanıtlayan sohbet asistanı (Faz 8 sonrası
+    ek). history: [{"role": "user"|"assistant", "content": str}, ...].
+    reply_language: "tr" | "en" — kurs dili veya kullanıcının arayüz diline
+    göre belirlenir."""
+    language_instruction = (
+        "Always answer in English, regardless of the language the question was asked in."
+        if reply_language == "en"
+        else "Yanıtlarını her zaman Türkçe ver, soru hangi dilde sorulursa sorulsun."
+    )
+
+    system_prompt = f"""Sen BilimData eğitim platformunda bu kursa özel bir asistansın. Yalnızca
+aşağıdaki kursun içeriği, müfredatı, fiyatı, kapsamı ve kime uygun olduğu
+hakkındaki sorulara yanıt veriyorsun. Kısa ve net yanıt ver. {language_instruction}
+Kursla ilgisi olmayan bir soru sorulursa, bunun kurs asistanı olduğunu ve
+yalnızca bu eğitimle ilgili sorulara yardımcı olabileceğini kibarca belirt.
+Video içeriklerinin birebir transkriptine erişimin yok; yalnızca aşağıdaki
+müfredat özetine dayanarak yanıt verebilirsin, emin olmadığın ayrıntılar için
+öğrenciyi ilgili dersi izlemeye yönlendir.
+
+Yanıtını ASLA markdown (#, ##, **, -, ``` gibi) işaretleriyle biçimlendirme.
+Bunun yerine, gerekiyorsa yalnızca şu yalın HTML etiketlerini kullan: <p>,
+<strong>, <ul><li>. Çoğu kısa yanıt için tek bir <p> yeterlidir, sohbet
+formatında kısa ve doğal yaz — uzun raporlar veya başlıklı bölümler oluşturma.
+
+Kurs Bilgisi:
+{course_context}"""
+
+    messages = [*history, {"role": "user", "content": message}]
+
+    async with httpx.AsyncClient(timeout=60) as client:
+        response = await client.post(
+            ANTHROPIC_API_URL,
+            headers={
+                "x-api-key": settings.anthropic_api_key or "",
+                "anthropic-version": "2023-06-01",
+                "content-type": "application/json",
+            },
+            json={
+                "model": "claude-haiku-4-5-20251001",
+                "max_tokens": 500,
+                "system": system_prompt,
+                "messages": messages,
+            },
+        )
+        response.raise_for_status()
+        blocks = response.json()["content"]
+        return next(b["text"] for b in blocks if b["type"] == "text")
