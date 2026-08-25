@@ -129,15 +129,30 @@ Kullanıcı isteğiyle yazı gönderme deneyimi zenginleştirildi: kapak görsel
 - Geliştirme sunucuları: `uvicorn app.main:app --port 8000` (backend), `ng serve --port 4200` (frontend).
 - Supabase migration'ları sırayla (`0001` → `0014`) SQL Editor'de elle çalıştırılıyor (proje CLI kurulu değil).
 
+## Faz 8 — Kullanıcı Paneli, Sertifika & Kurs Değerlendirmeleri
+
+Şema/servis iskeleti (`lesson_progress`, `reviews`, `certificates` tabloları + `certificate_service.py`) Faz 0'dan beri vardı ama hiç uçtan uca bağlanmamıştı. Bu fazda:
+
+- **Backend — İlerleme takibi:** `POST /lessons/{lesson_id}/progress` (`backend/app/routers/lessons.py`) eklendi — aynı erişim kontrolünü (preview/login/enrollment) uygulayıp `lesson_progress` tablosuna upsert yapıyor, ardından kursun toplam ders sayısına göre `enrollments.progress_percent`'i yeniden hesaplayıp güncelliyor. `GET /courses/{slug}/my-progress` (`routers/courses.py`) eklendi — giriş yapmış kullanıcı için tamamlanan ders ID'leri + yüzde döner (course-player ve dashboard için tek kaynak).
+- **Backend — Enrollment:** `GET /enrollments/me` artık `courses(title, slug, cover_image_url)` embed ediyor (`EnrollmentOut.course` alanı) — dashboard'da kurs kartları için ayrı bir istek gerekmiyor.
+- **Backend — Reviews:** `reviews.py` yeniden yazıldı: `POST /reviews` artık kullanıcının kursa kayıtlı (paid/free/coupon) olmasını zorunlu kılıyor ve zaten bir değerlendirmesi varsa günceller (tablo düzeyinde unique constraint yok, uygulama katmanında kontrol ediliyor); `GET /reviews/course/{id}/summary` (ortalama puan + adet), `DELETE /reviews/{id}` (kendi veya admin) eklendi.
+- **Sertifika:** Mevcut `certificate_service.py` (reportlab ile PDF üretimi) ve `POST /certificates/{course_id}/issue` (%100 tamamlanmadan reddediyor) ilk kez frontend'den tetiklenebilir hale getirildi.
+- **Frontend — yeni model/servisler:** `core/models/{review,certificate,course-progress}.model.ts`, `core/services/{review,certificate}.service.ts`; `lesson.service.ts`'e `updateProgress()`, `course.service.ts`'e `getMyProgress()` eklendi; `enrollment.model.ts`'e opsiyonel `course` alanı eklendi.
+- **Frontend — Dashboard (`features/dashboard/`):** "Eğitimlerim" bölümü — kayıtlı (pending olmayan) her kurs için ilerleme çubuğu + yüzde; %100'e ulaşınca "Sertifika Al" butonu, alındıktan sonra PDF'e giden "Sertifikayı Görüntüle" linki.
+- **Frontend — Kurs Detay (`features/courses/course-detail/`):** "Değerlendirmeler" bölümü — ortalama puan/adet özeti, kayıtlı kullanıcı için yıldızlı puan + yorum formu (var olan değerlendirmeyi günceller), tüm değerlendirmelerin listesi.
+- **Frontend — Course Player (`features/courses/course-player/`):** Sidebar'da genel ilerleme çubuğu + tamamlanan derslerde ✅ işareti; video altında "Dersi Tamamladım Olarak İşaretle" butonu (tıklanınca `lesson_progress` güncellenir, yüzde anında yenilenir).
+- Doğrulama: `backend/.venv/Scripts/python.exe -c "from app.main import app"` ile router'lar temiz yükleniyor; `npx ng build --configuration development` hatasız tamamlandı (yalnızca ilgisiz, önceden var olan Sass `@import` deprecation uyarısı var).
+
+Migration gerekmedi — üç tablo da `0001_init.sql`'de zaten tam şema + RLS ile mevcuttu.
+
 ## Commit Durumu
 
-⚠️ Faz 6/7 + blog etkileşim/kullanıcı yazıları + `/blog/write` yeniden tasarımı henüz commit edilmedi. Son commit hâlâ `14f9ce7`.
+Faz 8 kodu tamamlandı, henüz commit edilmedi (bir sonraki adım commit).
 
 ## Şu Anda Neredeyiz / Sırada Ne Var
 
-Tamamlanan: **Faz 0 → Faz 4, Faz 6, Faz 7** + dört plan dışı ek (Udemy entegrasyonu, çoklu eğitmen sistemi, blog etkileşim/kullanıcı yazıları, zengin metin editörlü `/blog/write`). CLAUDE.md roadmap'ine göre kalanlar:
+Tamamlanan: **Faz 0 → Faz 4, Faz 6, Faz 7, Faz 8** + dört plan dışı ek (Udemy entegrasyonu, çoklu eğitmen sistemi, blog etkileşim/kullanıcı yazıları, zengin metin editörlü `/blog/write`).
 
 - **Faz 5 — Ödeme Entegrasyonu:** v1 kapsamı dışında bırakıldı (bilinçli karar — manuel/pending onay akışı bunun yerine kullanılıyor). Gerçek Iyzico/Stripe entegrasyonu v2'de.
-- **Faz 8 — Kullanıcı Paneli, Sertifika & Yorumlar:** İlerleme takibi (`lesson_progress` tablosu var ama hiç kullanılmıyor), sertifika üretimi (`certificate_service.py` iskeleti Faz 0'dan beri var, hiç tetiklenmedi/test edilmedi), **kurs** yorumları/değerlendirme (`reviews` tablosu var, backend endpoint'i var ama frontend'de hiç UI yok — blog yorumlarından farklı, kurs sayfası için).
 
-Bir sonraki oturumda önce commit atılmalı, sonra kullanıcıyla Faz 8'e mi geçileceği netleştirilecek.
+CLAUDE.md roadmap'inin geri kalanı (Faz 5 hariç) tamamlandı. Bir sonraki oturumda önce commit atılmalı, sonra kullanıcıyla yeni yön (ör. ödeme entegrasyonu, ek iyileştirmeler) netleştirilecek.

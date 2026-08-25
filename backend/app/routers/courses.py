@@ -1,5 +1,6 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 
+from ..core.security import CurrentUser, get_current_user
 from ..core.supabase_client import get_supabase
 from ..models.courses import CourseOut, CurriculumSectionOut
 
@@ -59,3 +60,43 @@ async def get_course_curriculum(slug: str):
     for section in sections.data:
         section["lessons"].sort(key=lambda lesson: lesson["order_index"])
     return sections.data
+
+
+@router.get("/{slug}/my-progress")
+async def get_my_course_progress(slug: str, user: CurrentUser = Depends(get_current_user)):
+    supabase = get_supabase()
+    course = supabase.table("courses").select("id").eq("slug", slug).execute()
+    if not course.data:
+        raise HTTPException(status_code=404, detail="Kurs bulunamadı")
+    course_id = course.data[0]["id"]
+
+    sections = supabase.table("course_sections").select("id").eq("course_id", course_id).execute()
+    section_ids = [row["id"] for row in sections.data]
+
+    lesson_ids: list[str] = []
+    if section_ids:
+        lessons = supabase.table("lessons").select("id").in_("section_id", section_ids).execute()
+        lesson_ids = [row["id"] for row in lessons.data]
+
+    completed_ids: list[str] = []
+    if lesson_ids:
+        progress = (
+            supabase.table("lesson_progress")
+            .select("lesson_id")
+            .eq("user_id", user.id)
+            .eq("completed", True)
+            .in_("lesson_id", lesson_ids)
+            .execute()
+        )
+        completed_ids = [row["lesson_id"] for row in progress.data]
+
+    enrollment = (
+        supabase.table("enrollments")
+        .select("progress_percent")
+        .eq("user_id", user.id)
+        .eq("course_id", course_id)
+        .execute()
+    )
+    progress_percent = enrollment.data[0]["progress_percent"] if enrollment.data else 0
+
+    return {"completed_lesson_ids": completed_ids, "progress_percent": progress_percent}

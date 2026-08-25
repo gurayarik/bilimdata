@@ -59,5 +59,13 @@ async def create_enrollment(
 @router.get("/me", response_model=list[EnrollmentOut])
 async def my_enrollments(user: CurrentUser = Depends(get_current_user)):
     supabase = get_supabase()
-    result = supabase.table("enrollments").select("*").eq("user_id", user.id).execute()
-    return result.data
+    result = (
+        supabase.table("enrollments")
+        .select("*, courses(title, slug, cover_image_url)")
+        .eq("user_id", user.id)
+        .execute()
+    )
+    rows = result.data
+    for row in rows:
+        row["course"] = row.pop("courses", None)
+    return rows

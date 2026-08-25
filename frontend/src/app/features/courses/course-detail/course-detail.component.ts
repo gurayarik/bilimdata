@@ -1,17 +1,20 @@
 import { AsyncPipe } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 import { Course } from '../../../core/models/course.model';
 import { CurriculumSection } from '../../../core/models/lesson.model';
+import { Review, ReviewSummary } from '../../../core/models/review.model';
 import { CourseService } from '../../../core/services/course.service';
 import { EnrollmentService } from '../../../core/services/enrollment.service';
+import { ReviewService } from '../../../core/services/review.service';
 import { SupabaseService } from '../../../core/services/supabase.service';
 
 @Component({
   selector: 'app-course-detail',
   standalone: true,
-  imports: [RouterLink, AsyncPipe, TranslatePipe],
+  imports: [RouterLink, AsyncPipe, TranslatePipe, FormsModule],
   template: `
     @if (course) {
       <section class="bg-brand-900 text-white">
@@ -86,6 +89,62 @@ import { SupabaseService } from '../../../core/services/supabase.service';
             </div>
           </div>
           }
+
+          <div class="mt-10">
+            <h2 class="text-lg font-bold text-brand-900">
+              Değerlendirmeler
+              @if (reviewSummary.count) {
+                <span class="ml-2 text-sm font-normal text-slate-500">
+                  ⭐ {{ reviewSummary.average }} ({{ reviewSummary.count }})
+                </span>
+              }
+            </h2>
+
+            @if (isEnrolled) {
+              <form
+                class="mt-4 flex flex-col gap-2 rounded-lg border border-slate-200 p-4"
+                (ngSubmit)="submitReview()"
+              >
+                <div class="flex items-center gap-1">
+                  @for (star of [1, 2, 3, 4, 5]; track star) {
+                    <button type="button" class="text-xl leading-none" (click)="reviewForm.rating = star">
+                      {{ star <= reviewForm.rating ? '⭐' : '☆' }}
+                    </button>
+                  }
+                </div>
+                <textarea
+                  class="rounded-md border border-slate-300 px-3 py-2 text-sm"
+                  rows="3"
+                  [(ngModel)]="reviewForm.comment"
+                  name="comment"
+                  placeholder="Yorumunuz (opsiyonel)"
+                ></textarea>
+                <button
+                  type="submit"
+                  [disabled]="!reviewForm.rating"
+                  class="self-start rounded-md bg-accent-500 px-4 py-2 text-sm font-semibold text-brand-900 hover:bg-accent-600 disabled:opacity-50"
+                >
+                  Gönder
+                </button>
+              </form>
+            }
+
+            <ul class="mt-4 flex flex-col gap-3">
+              @for (review of reviews; track review.id) {
+                <li class="rounded-lg border border-slate-100 bg-slate-50 p-3">
+                  <div class="flex items-center justify-between">
+                    <span class="text-sm font-semibold text-brand-900">
+                      {{ review.author?.full_name || 'Kullanıcı' }}
+                    </span>
+                    <span class="text-sm">{{ stars(review.rating) }}</span>
+                  </div>
+                  @if (review.comment) {
+                    <p class="mt-1 text-sm text-slate-700">{{ review.comment }}</p>
+                  }
+                </li>
+              }
+            </ul>
+          </div>
         </div>
 
         <div>
@@ -162,12 +221,16 @@ export class CourseDetailComponent implements OnInit {
   isEnrolled = false;
   pendingApproval = false;
   enrolling = false;
+  reviews: Review[] = [];
+  reviewSummary: ReviewSummary = { average: 0, count: 0 };
+  reviewForm: { rating: number; comment: string } = { rating: 0, comment: '' };
   readonly session$;
 
   constructor(
     private readonly route: ActivatedRoute,
     private readonly courseService: CourseService,
     private readonly enrollmentService: EnrollmentService,
+    private readonly reviewService: ReviewService,
     private readonly supabase: SupabaseService
   ) {
     this.session$ = this.supabase.session$;
@@ -178,8 +241,28 @@ export class CourseDetailComponent implements OnInit {
     this.courseService.getBySlug(slug).subscribe((course) => {
       this.course = course;
       this.refreshEnrollment(course.id);
+      this.loadReviews(course.id);
     });
     this.courseService.getCurriculum(slug).subscribe((sections) => (this.sections = sections));
+  }
+
+  stars(rating: number) {
+    return '⭐'.repeat(rating);
+  }
+
+  submitReview() {
+    if (!this.course || !this.reviewForm.rating) return;
+    this.reviewService
+      .submit(this.course.id, this.reviewForm.rating, this.reviewForm.comment)
+      .subscribe(() => {
+        this.reviewForm = { rating: 0, comment: '' };
+        this.loadReviews(this.course!.id);
+      });
+  }
+
+  private loadReviews(courseId: string) {
+    this.reviewService.listForCourse(courseId).subscribe((reviews) => (this.reviews = reviews));
+    this.reviewService.summaryForCourse(courseId).subscribe((summary) => (this.reviewSummary = summary));
   }
 
   canPlay(lesson: { is_preview: boolean }) {

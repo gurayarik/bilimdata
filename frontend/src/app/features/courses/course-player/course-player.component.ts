@@ -28,6 +28,14 @@ import { LessonService } from '../../../core/services/lesson.service';
           @if (lessonDescription) {
             <p class="mt-2 text-sm text-slate-600">{{ lessonDescription }}</p>
           }
+          <button
+            type="button"
+            class="mt-4 rounded-md border border-accent-500 px-4 py-2 text-sm font-semibold text-accent-600 hover:bg-accent-500/10 disabled:opacity-50"
+            [disabled]="markingComplete || completedLessonIds.has(lessonId)"
+            (click)="markComplete()"
+          >
+            {{ completedLessonIds.has(lessonId) ? '✅ Tamamlandı' : 'Dersi Tamamladım Olarak İşaretle' }}
+          </button>
         } @else if (accessError === 401) {
           <div class="rounded-lg border border-slate-200 p-8 text-center">
             <p class="text-slate-600">{{ 'player.need_login' | translate }}</p>
@@ -50,6 +58,12 @@ import { LessonService } from '../../../core/services/lesson.service';
 
       <div>
         <h2 class="font-semibold text-brand-900">{{ 'course_detail.curriculum' | translate }}</h2>
+        <div class="mt-2 flex items-center gap-2 text-sm text-slate-500">
+          <div class="h-2 flex-1 overflow-hidden rounded-full bg-slate-100">
+            <div class="h-full bg-accent-500" [style.width.%]="progressPercent"></div>
+          </div>
+          <span>%{{ progressPercent }}</span>
+        </div>
         <div class="mt-3 flex flex-col gap-3">
           @for (section of sections; track section.id) {
             <div class="rounded-lg border border-slate-200">
@@ -60,7 +74,8 @@ import { LessonService } from '../../../core/services/lesson.service';
                     [class.bg-slate-50]="lesson.id === lessonId"
                   >
                     <a [routerLink]="['/courses', slug, 'lessons', lesson.id]" class="text-brand-900">
-                      {{ lesson.is_preview ? '▶' : '🔒' }} {{ lesson.title }}
+                      {{ completedLessonIds.has(lesson.id) ? '✅' : lesson.is_preview ? '▶' : '🔒' }}
+                      {{ lesson.title }}
                     </a>
                   </li>
                 }
@@ -80,6 +95,9 @@ export class CoursePlayerComponent implements OnInit {
   videoUrl: SafeResourceUrl | null = null;
   accessError: 401 | 403 | null = null;
   sections: CurriculumSection[] = [];
+  progressPercent = 0;
+  completedLessonIds = new Set<string>();
+  markingComplete = false;
 
   constructor(
     private readonly route: ActivatedRoute,
@@ -94,6 +112,30 @@ export class CoursePlayerComponent implements OnInit {
       this.lessonId = params.get('lessonId')!;
       this.loadLesson();
       this.courseService.getCurriculum(this.slug).subscribe((sections) => (this.sections = sections));
+      this.loadProgress();
+    });
+  }
+
+  private loadProgress() {
+    this.courseService.getMyProgress(this.slug).subscribe({
+      next: (progress) => {
+        this.progressPercent = progress.progress_percent;
+        this.completedLessonIds = new Set(progress.completed_lesson_ids);
+      },
+      error: () => {},
+    });
+  }
+
+  markComplete() {
+    if (!this.lessonId) return;
+    this.markingComplete = true;
+    this.lessonService.updateProgress(this.lessonId, { completed: true }).subscribe({
+      next: (result) => {
+        this.markingComplete = false;
+        this.progressPercent = result.progress_percent;
+        this.completedLessonIds.add(this.lessonId);
+      },
+      error: () => (this.markingComplete = false),
     });
   }
 

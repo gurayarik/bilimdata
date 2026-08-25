@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Course } from '../models/course.model';
+import { CourseProgress } from '../models/course-progress.model';
 import { CurriculumSection } from '../models/lesson.model';
 import { ApiService } from './api.service';
 
@@ -18,5 +19,9 @@ export class CourseService {
 
   getCurriculum(slug: string) {
     return this.api.get<CurriculumSection[]>(`/courses/${slug}/curriculum`);
+  }
+
+  getMyProgress(slug: string) {
+    return this.api.get<CourseProgress>(`/courses/${slug}/my-progress`);
   }
 }
