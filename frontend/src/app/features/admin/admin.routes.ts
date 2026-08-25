@@ -30,5 +30,12 @@ export const ADMIN_ROUTES: Routes = [
         (m) => m.AdminInstructorApplicationsComponent
       ),
   },
+  {
+    path: 'contact-messages',
+    loadComponent: () =>
+      import('./contact-messages/contact-messages.component').then(
+        (m) => m.AdminContactMessagesComponent
+      ),
+  },
   { path: '', redirectTo: 'courses', pathMatch: 'full' },
 ];

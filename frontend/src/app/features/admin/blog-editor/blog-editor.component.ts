@@ -26,108 +26,148 @@ function emptyForm(): BlogForm {
   standalone: true,
   imports: [FormsModule, AdminNavComponent],
   template: `
-    <app-admin-nav />
-    <section class="mx-auto max-w-4xl px-4 pb-16">
-      <h1 class="text-xl font-bold text-brand-900">Blog Yönetimi</h1>
+    <section class="mx-auto max-w-5xl px-4 py-8 sm:py-10">
+      <app-admin-nav />
 
-      <table class="mt-6 w-full text-left text-sm">
-        <thead>
-          <tr class="border-b border-slate-200 text-slate-500">
-            <th class="py-2">Başlık</th>
-            <th>Yazar</th>
-            <th>Durum</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
+      <div class="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h2 class="text-lg font-bold text-brand-900">Blog Yönetimi</h2>
+          <p class="mt-1 text-sm text-slate-500">{{ posts.length }} yazı</p>
+        </div>
+        <button
+          type="button"
+          class="rounded-full bg-accent-500 px-4 py-2 text-sm font-semibold text-brand-900 hover:bg-accent-600"
+          (click)="openCreateForm()"
+        >
+          + Yeni Yazı
+        </button>
+      </div>
+
+      @if (posts.length) {
+        <div class="mt-6 flex flex-col gap-3">
           @for (post of posts; track post.id) {
-            <tr class="border-b border-slate-100">
-              <td class="py-2">{{ post.title }}</td>
-              <td>{{ post.author?.full_name || '—' }}</td>
-              <td>
+            <div
+              class="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:shadow-md"
+            >
+              <div class="flex items-center gap-3">
+                <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-accent-500/10 text-xl">📝</div>
+                <div>
+                  <p class="font-semibold text-brand-900">{{ post.title }}</p>
+                  <p class="mt-0.5 text-xs text-slate-500">{{ post.author?.full_name || 'Yazar yok' }}</p>
+                </div>
+              </div>
+              <div class="flex flex-wrap items-center gap-2">
                 @if (post.is_published) {
-                  <span class="text-emerald-600">Yayında</span>
+                  <span class="rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-semibold text-emerald-700"
+                    >Yayında</span
+                  >
                 } @else {
-                  <span class="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-700"
+                  <span class="rounded-full bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-700"
                     >Taslak / Onay Bekliyor</span
                   >
                 }
-              </td>
-              <td class="flex flex-wrap justify-end gap-2 py-2 text-right">
-                <button type="button" class="text-brand-900 hover:underline" (click)="edit(post)">Düzenle</button>
-                <button type="button" class="text-accent-600 hover:underline" (click)="summarize(post)">
-                  AI ile Özetle
+                <button
+                  type="button"
+                  class="rounded-full border border-slate-200 px-3 py-1.5 text-xs font-semibold text-brand-900 hover:bg-slate-50"
+                  (click)="edit(post)"
+                >
+                  ✏️ Düzenle
                 </button>
-                <button type="button" class="text-red-600 hover:underline" (click)="remove(post)">Sil</button>
-              </td>
-            </tr>
-          }
-        </tbody>
-      </table>
-
-      <h2 class="mt-10 text-lg font-bold text-brand-900">{{ editingId ? 'Yazıyı Düzenle' : 'Yeni Yazı' }}</h2>
-      <form class="mt-4 flex flex-col gap-4" (ngSubmit)="save()">
-        <label class="flex flex-col gap-1 text-sm">
-          Başlık
-          <input class="rounded-md border border-slate-300 px-3 py-2" [(ngModel)]="form.title" name="title" required />
-        </label>
-        <label class="flex flex-col gap-1 text-sm">
-          Slug
-          <input class="rounded-md border border-slate-300 px-3 py-2" [(ngModel)]="form.slug" name="slug" required />
-        </label>
-        <label class="flex flex-col gap-1 text-sm">
-          Özet
-          <input class="rounded-md border border-slate-300 px-3 py-2" [(ngModel)]="form.excerpt" name="excerpt" />
-        </label>
-        <label class="flex flex-col gap-1 text-sm">
-          Kapak Görseli URL
-          <input
-            class="rounded-md border border-slate-300 px-3 py-2"
-            [(ngModel)]="form.cover_image_url"
-            name="cover_image_url"
-          />
-        </label>
-        <label class="flex flex-col gap-1 text-sm">
-          Video Linki
-          <input class="rounded-md border border-slate-300 px-3 py-2" [(ngModel)]="form.video_url" name="video_url" />
-        </label>
-        <label class="flex flex-col gap-1 text-sm">
-          Kategori
-          <input class="rounded-md border border-slate-300 px-3 py-2" [(ngModel)]="form.category" name="category" />
-        </label>
-        <label class="flex flex-col gap-1 text-sm">
-          İçerik
-          <textarea
-            class="rounded-md border border-slate-300 px-3 py-2"
-            rows="8"
-            [(ngModel)]="form.content"
-            name="content"
-            required
-          ></textarea>
-        </label>
-        <label class="flex items-center gap-2 text-sm">
-          <input type="checkbox" [(ngModel)]="form.is_published" name="is_published" />
-          Yayında
-        </label>
-
-        <div class="flex gap-3">
-          <button
-            type="submit"
-            class="rounded-md bg-accent-500 px-5 py-2 font-semibold text-brand-900 hover:bg-accent-600"
-          >
-            {{ editingId ? 'Güncelle' : 'Oluştur' }}
-          </button>
-          @if (editingId) {
-            <button
-              type="button"
-              class="rounded-md border border-slate-300 px-5 py-2 text-sm"
-              (click)="resetForm()"
-            >
-              Vazgeç
-            </button>
+                <button
+                  type="button"
+                  class="rounded-full border border-accent-500/40 px-3 py-1.5 text-xs font-semibold text-accent-600 hover:bg-accent-500/10"
+                  (click)="summarize(post)"
+                >
+                  ✨ AI ile Özetle
+                </button>
+                <button
+                  type="button"
+                  class="rounded-full border border-red-200 px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-50"
+                  (click)="remove(post)"
+                >
+                  🗑️ Sil
+                </button>
+              </div>
+            </div>
           }
         </div>
-      </form>
+      } @else {
+        <div class="mt-6 flex flex-col items-center gap-3 rounded-2xl border border-dashed border-slate-300 py-16 text-center">
+          <span class="text-4xl">📝</span>
+          <p class="text-sm text-slate-500">Henüz bir blog yazısı yok.</p>
+        </div>
+      }
+
+      @if (showForm) {
+        <div class="mt-10 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+          <div class="flex items-center justify-between">
+            <h2 class="text-lg font-bold text-brand-900">{{ editingId ? 'Yazıyı Düzenle' : 'Yeni Yazı' }}</h2>
+            <button type="button" class="text-sm text-slate-500 hover:text-slate-700" (click)="resetForm()">
+              ✕ Kapat
+            </button>
+          </div>
+          <form class="mt-4 flex flex-col gap-4" (ngSubmit)="save()">
+            <label class="flex flex-col gap-1 text-sm">
+              Başlık
+              <input class="rounded-md border border-slate-300 px-3 py-2" [(ngModel)]="form.title" name="title" required />
+            </label>
+            <label class="flex flex-col gap-1 text-sm">
+              Slug
+              <input class="rounded-md border border-slate-300 px-3 py-2" [(ngModel)]="form.slug" name="slug" required />
+            </label>
+            <label class="flex flex-col gap-1 text-sm">
+              Özet
+              <input class="rounded-md border border-slate-300 px-3 py-2" [(ngModel)]="form.excerpt" name="excerpt" />
+            </label>
+            <label class="flex flex-col gap-1 text-sm">
+              Kapak Görseli URL
+              <input
+                class="rounded-md border border-slate-300 px-3 py-2"
+                [(ngModel)]="form.cover_image_url"
+                name="cover_image_url"
+              />
+            </label>
+            <label class="flex flex-col gap-1 text-sm">
+              Video Linki
+              <input class="rounded-md border border-slate-300 px-3 py-2" [(ngModel)]="form.video_url" name="video_url" />
+            </label>
+            <label class="flex flex-col gap-1 text-sm">
+              Kategori
+              <input class="rounded-md border border-slate-300 px-3 py-2" [(ngModel)]="form.category" name="category" />
+            </label>
+            <label class="flex flex-col gap-1 text-sm">
+              İçerik
+              <textarea
+                class="rounded-md border border-slate-300 px-3 py-2"
+                rows="8"
+                [(ngModel)]="form.content"
+                name="content"
+                required
+              ></textarea>
+            </label>
+            <label class="flex items-center gap-2 text-sm">
+              <input type="checkbox" [(ngModel)]="form.is_published" name="is_published" />
+              Yayında
+            </label>
+
+            <div class="flex gap-3">
+              <button
+                type="submit"
+                class="rounded-full bg-accent-500 px-5 py-2 text-sm font-semibold text-brand-900 hover:bg-accent-600"
+              >
+                {{ editingId ? 'Güncelle' : 'Oluştur' }}
+              </button>
+              <button
+                type="button"
+                class="rounded-full border border-slate-300 px-5 py-2 text-sm hover:bg-slate-50"
+                (click)="resetForm()"
+              >
+                Vazgeç
+              </button>
+            </div>
+          </form>
+        </div>
+      }
     </section>
   `,
 })
@@ -135,6 +175,7 @@ export class BlogEditorComponent implements OnInit {
   posts: AdminBlogPost[] = [];
   form: BlogForm = emptyForm();
   editingId: string | null = null;
+  showForm = false;
 
   constructor(private readonly adminService: AdminService) {}
 
@@ -148,9 +189,16 @@ export class BlogEditorComponent implements OnInit {
       .subscribe((posts) => (this.posts = posts as AdminBlogPost[]));
   }
 
+  openCreateForm() {
+    this.editingId = null;
+    this.form = emptyForm();
+    this.showForm = true;
+  }
+
   edit(post: BlogPost) {
     this.editingId = post.id;
     this.form = { ...post };
+    this.showForm = true;
   }
 
   summarize(post: AdminBlogPost) {
@@ -160,6 +208,7 @@ export class BlogEditorComponent implements OnInit {
   resetForm() {
     this.editingId = null;
     this.form = emptyForm();
+    this.showForm = false;
   }
 
   save() {
