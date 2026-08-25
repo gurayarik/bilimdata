@@ -145,9 +145,17 @@ Kullanıcı isteğiyle yazı gönderme deneyimi zenginleştirildi: kapak görsel
 
 Migration gerekmedi — üç tablo da `0001_init.sql`'de zaten tam şema + RLS ile mevcuttu.
 
+## Faz 8 Sonrası Düzeltme — Video Bitince Otomatik İlerleme + Sonraki Derse Geçiş
+
+Kullanıcı geri bildirimi: (1) dashboard'da kurs kartlarında başlık yerine "Eğitim" yazısı ve admin "Kayıt Onayları" sayfasında kurs isimlerinin boş görünmesi, (2) video izlendikten sonra ilerlemenin manuel işaretlenmesi yerine otomatik algılanıp bir sonraki derse geçilmesi gerektiği.
+
+- **Doğrulama:** `/enrollments/me` ve `/admin/enrollments/pending` uçları FastAPI `TestClient` + gerçek Supabase verisiyle uçtan uca test edildi — her ikisi de kurs başlığını (`course.title`) doğru şekilde döndürüyor. Sorun backend'de değil; ekran görüntüsündeki `ng serve`/`uvicorn` süreçlerinin bu oturumdaki Faz 8 değişikliklerinden önce başlatılmış olması (bkz. süreç başlangıç saatleri) — dev sunucularının yeniden başlatılması ve tarayıcının sert yenilenmesi (Ctrl+Shift+R) gerekiyor.
+- **`course-player.component.ts` yeniden yazıldı:** Düz `<iframe>` yerine YouTube IFrame Player API (`https://www.youtube.com/iframe_api`, dinamik olarak tek seferlik yükleniyor) kullanılıyor. Video `ENDED` durumuna geçtiğinde otomatik olarak `markComplete()` tetikleniyor ve müfredattaki bir sonraki derse "Sonraki derse geçiliyor…" göstergesiyle birlikte 1.5 saniye sonra yönlendiriliyor (`findNextLesson()` — bölümlerdeki dersleri düzleştirip mevcut dersin index'inden bir sonrakini buluyor; son dersteyse otomatik geçiş yapılmıyor).
+- Doğrulama: `npx ng build --configuration development` hatasız tamamlandı.
+
 ## Commit Durumu
 
-Faz 8 kodu tamamlandı, henüz commit edilmedi (bir sonraki adım commit).
+Faz 8 + video-bitince-otomatik-ilerleme kodu tamamlandı, henüz commit edilmedi (bir sonraki adım commit).
 
 ## Şu Anda Neredeyiz / Sırada Ne Var
 
