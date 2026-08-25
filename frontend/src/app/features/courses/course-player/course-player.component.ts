@@ -139,6 +139,8 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
   advancing = false;
 
   private ytPlayer: any = null;
+  private progressPoll: ReturnType<typeof setInterval> | null = null;
+  private endedHandled = false;
 
   constructor(
     private readonly route: ActivatedRoute,
@@ -222,8 +224,16 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
       // Kullanıcı yüklenme bitmeden başka bir derse geçmiş olabilir.
       if (this.lessonId !== requestedLessonId) return;
       this.destroyPlayer();
+      this.endedHandled = false;
       this.ytPlayer = new window.YT.Player('yt-player', {
         events: {
+          onReady: () => {
+            // "ended" olayı bazı gömülü videolarda (özel/kısıtlı paylaşım
+            // izinleri) güvenilir tetiklenmeyebiliyor; bu yüzden video
+            // süresinin sonuna yaklaşıldığını da periyodik olarak kontrol
+            // ederek tamamlanmayı yedekli şekilde algılıyoruz.
+            this.progressPoll = setInterval(() => this.checkNearEnd(), 3000);
+          },
           onStateChange: (event: any) => {
             if (event.data === window.YT.PlayerState.ENDED) {
               this.onVideoEnded();
@@ -234,7 +244,24 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
     });
   }
 
+  private checkNearEnd() {
+    if (!this.ytPlayer || this.endedHandled) return;
+    try {
+      const duration = this.ytPlayer.getDuration?.();
+      const current = this.ytPlayer.getCurrentTime?.();
+      if (duration && current && duration - current <= 1.5) {
+        this.onVideoEnded();
+      }
+    } catch {
+      // Oynatıcı henüz tam hazır olmayabilir, bir sonraki taramada tekrar denenir.
+    }
+  }
+
   private destroyPlayer() {
+    if (this.progressPoll) {
+      clearInterval(this.progressPoll);
+      this.progressPoll = null;
+    }
     if (this.ytPlayer) {
       try {
         this.ytPlayer.destroy();
@@ -246,6 +273,8 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
   }
 
   private onVideoEnded() {
+    if (this.endedHandled) return;
+    this.endedHandled = true;
     this.markComplete();
     const next = this.findNextLesson();
     if (!next) return;
