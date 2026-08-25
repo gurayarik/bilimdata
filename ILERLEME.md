@@ -166,6 +166,10 @@ Kullanıcı isteği: oynatıcı sayfasının etrafı (video hariç, YouTube ToS 
 - `flatLessons`/`totalLessons`/`completedCount`/`previousLesson`/`nextLesson` getter'ları eklendi; kurs başlığı için `courseService.getBySlug()` bir kez (slug değişmedikçe tekrar çağrılmadan) çekiliyor.
 - Doğrulama: `npx ng build --configuration development` hatasız tamamlandı.
 
+**İki ek düzeltme (kullanıcı geri bildirimi, 26 derslik uzun bir kursta test edilerek):**
+1. Sidebar'daki iç `max-h-[70vh] overflow-y-auto` kaydırma kutusu kullanıcılar tarafından fark edilmiyordu ("diğer dersleri göremiyorum" hissi veriyordu) — kaldırıldı, liste artık normal sayfa akışıyla kayıyor; sadece başlık + genel ilerleme çubuğu `md:sticky md:top-16` ile sabit kalıyor (opak `bg-white` arka planla, altından kayan ders satırlarının üstüne bindiği görsel hata da giderildi).
+2. Bölümler artık **akordeon (açılır/kapanır)** — `expandedSectionId` state'i, bölüm başlığına tıklayınca `toggleSection()` ile açılıp kapanıyor; sayfa yüklendiğinde veya bir sonraki/önceki derse geçildiğinde `expandActiveSection()` otomatik olarak yalnızca **izlenmekte olan dersin bulunduğu bölümü** açık getiriyor, diğerleri kapalı — uzun kurslarda (ör. 26 ders/7+ bölüm) sayfa daha az kalabalık görünüyor.
+
 ## Commit Durumu
 
 Faz 8 + video-bitince-otomatik-ilerleme kodu tamamlandı, henüz commit edilmedi (bir sonraki adım commit).

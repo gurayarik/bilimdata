@@ -130,7 +130,7 @@ function loadYouTubeApi(): Promise<void> {
         </div>
 
         <aside>
-          <div class="md:sticky md:top-24">
+          <div class="border-b border-slate-200 bg-white pb-3 md:sticky md:top-16 md:z-10">
             <h2 class="font-semibold text-brand-900">{{ 'course_detail.curriculum' | translate }}</h2>
             <div class="mt-2 flex items-center gap-2 text-sm text-slate-500">
               <div class="h-2 flex-1 overflow-hidden rounded-full bg-slate-100">
@@ -142,32 +142,41 @@ function loadYouTubeApi(): Promise<void> {
           <div class="mt-3 flex flex-col gap-3">
             @for (section of sections; track section.id) {
               <div class="overflow-hidden rounded-lg border border-slate-200">
-                <div class="flex items-center justify-between border-b border-slate-200 bg-slate-50 px-3 py-2">
+                <button
+                  type="button"
+                  class="flex w-full items-center justify-between bg-slate-50 px-3 py-2 text-left"
+                  [class.border-b]="expandedSectionId === section.id"
+                  [class.border-slate-200]="expandedSectionId === section.id"
+                  (click)="toggleSection(section.id)"
+                >
                   <span class="text-sm font-semibold text-brand-900">{{ section.title }}</span>
-                  <span class="text-xs font-medium text-slate-400">
+                  <span class="flex items-center gap-2 text-xs font-medium text-slate-400">
                     {{ sectionCompletedCount(section) }}/{{ section.lessons.length }}
+                    <span class="text-slate-400">{{ expandedSectionId === section.id ? '▾' : '▸' }}</span>
                   </span>
-                </div>
-                <ul>
-                  @for (lesson of section.lessons; track lesson.id) {
-                    <li
-                      class="border-b border-l-4 border-slate-100 px-3 py-2 text-sm last:border-b-0"
-                      [class]="lesson.id === lessonId ? 'border-l-accent-500 bg-accent-500/10' : 'border-l-transparent'"
-                    >
-                      <a [routerLink]="['/courses', slug, 'lessons', lesson.id]" class="flex items-center justify-between gap-2 text-brand-900">
-                        <span [class.font-semibold]="lesson.id === lessonId" class="min-w-0">
-                          {{ lessonIcon(lesson) }} {{ lesson.title }}
-                          @if (lesson.id === lessonId) {
-                            <span class="ml-1 text-xs font-semibold text-accent-600">(şu an izliyorsun)</span>
+                </button>
+                @if (expandedSectionId === section.id) {
+                  <ul>
+                    @for (lesson of section.lessons; track lesson.id) {
+                      <li
+                        class="border-b border-l-4 border-slate-100 px-3 py-2 text-sm last:border-b-0"
+                        [class]="lesson.id === lessonId ? 'border-l-accent-500 bg-accent-500/10' : 'border-l-transparent'"
+                      >
+                        <a [routerLink]="['/courses', slug, 'lessons', lesson.id]" class="flex items-center justify-between gap-2 text-brand-900">
+                          <span [class.font-semibold]="lesson.id === lessonId" class="min-w-0">
+                            {{ lessonIcon(lesson) }} {{ lesson.title }}
+                            @if (lesson.id === lessonId) {
+                              <span class="ml-1 text-xs font-semibold text-accent-600">(şu an izliyorsun)</span>
+                            }
+                          </span>
+                          @if (lesson.duration_seconds) {
+                            <span class="shrink-0 text-xs text-slate-400">{{ formatDuration(lesson.duration_seconds) }}</span>
                           }
-                        </span>
-                        @if (lesson.duration_seconds) {
-                          <span class="shrink-0 text-xs text-slate-400">{{ formatDuration(lesson.duration_seconds) }}</span>
-                        }
-                      </a>
-                    </li>
-                  }
-                </ul>
+                        </a>
+                      </li>
+                    }
+                  </ul>
+                }
               </div>
             }
           </div>
@@ -189,6 +198,7 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
   completedLessonIds = new Set<string>();
   markingComplete = false;
   advancing = false;
+  expandedSectionId: string | null = null;
 
   private ytPlayer: any = null;
   private progressPoll: ReturnType<typeof setInterval> | null = null;
@@ -209,7 +219,10 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
       this.lessonId = params.get('lessonId')!;
       this.advancing = false;
       this.loadLesson();
-      this.courseService.getCurriculum(this.slug).subscribe((sections) => (this.sections = sections));
+      this.courseService.getCurriculum(this.slug).subscribe((sections) => {
+        this.sections = sections;
+        this.expandActiveSection();
+      });
       this.loadProgress();
       if (this.loadedCourseSlug !== this.slug) {
         this.loadedCourseSlug = this.slug;
@@ -246,6 +259,17 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
 
   goTo(lesson: CurriculumLesson) {
     this.router.navigate(['/courses', this.slug, 'lessons', lesson.id]);
+  }
+
+  toggleSection(sectionId: string) {
+    this.expandedSectionId = this.expandedSectionId === sectionId ? null : sectionId;
+  }
+
+  private expandActiveSection() {
+    const active = this.sections.find((section) => section.lessons.some((lesson) => lesson.id === this.lessonId));
+    if (active) {
+      this.expandedSectionId = active.id;
+    }
   }
 
   lessonIcon(lesson: CurriculumLesson): string {
