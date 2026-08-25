@@ -4,6 +4,7 @@ import { TranslatePipe } from '@ngx-translate/core';
 import { Certificate } from '../../core/models/certificate.model';
 import { Enrollment } from '../../core/models/enrollment.model';
 import { CertificateService } from '../../core/services/certificate.service';
+import { CourseService } from '../../core/services/course.service';
 import { EnrollmentService } from '../../core/services/enrollment.service';
 import { Profile, ProfileService } from '../../core/services/profile.service';
 import { SupabaseService } from '../../core/services/supabase.service';
@@ -40,6 +41,53 @@ import { SupabaseService } from '../../core/services/supabase.service';
       }
 
       @if (activeEnrollments.length) {
+        <div class="mt-10 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <div class="rounded-lg border border-slate-200 p-4 text-center">
+            <p class="text-2xl font-bold text-brand-900">{{ activeEnrollments.length }}</p>
+            <p class="text-xs text-slate-500">Kayıtlı Eğitim</p>
+          </div>
+          <div class="rounded-lg border border-slate-200 p-4 text-center">
+            <p class="text-2xl font-bold text-emerald-600">{{ completedCourses.length }}</p>
+            <p class="text-xs text-slate-500">Tamamlanan</p>
+          </div>
+          <div class="rounded-lg border border-slate-200 p-4 text-center">
+            <p class="text-2xl font-bold text-accent-600">{{ averageProgress }}%</p>
+            <p class="text-xs text-slate-500">Ortalama İlerleme</p>
+          </div>
+          <div class="rounded-lg border border-slate-200 p-4 text-center">
+            <p class="text-2xl font-bold text-brand-900">{{ certificates.length }}</p>
+            <p class="text-xs text-slate-500">Sertifika</p>
+          </div>
+        </div>
+
+        @if (completedCourses.length) {
+          <div class="mt-8">
+            <h2 class="text-lg font-bold text-brand-900">Tamamladığım Eğitimler</h2>
+            <div class="mt-3 flex flex-col gap-2">
+              @for (enrollment of completedCourses; track enrollment.id) {
+                <div class="flex items-center justify-between rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3">
+                  <span class="text-sm font-semibold text-brand-900">
+                    ✅ {{ enrollment.course?.title || 'Eğitim' }}
+                  </span>
+                  @if (certificateUrl(enrollment.course_id); as pdfUrl) {
+                    <a [href]="pdfUrl" target="_blank" rel="noopener" class="text-sm font-semibold text-accent-600 underline">
+                      🎓 Sertifika
+                    </a>
+                  } @else {
+                    <button
+                      type="button"
+                      class="text-sm font-semibold text-accent-600 underline"
+                      (click)="issueCertificate(enrollment.course_id)"
+                    >
+                      🎓 Sertifika Al
+                    </button>
+                  }
+                </div>
+              }
+            </div>
+          </div>
+        }
+
         <div class="mt-10">
           <h2 class="text-lg font-bold text-brand-900">Eğitimlerim</h2>
           <div class="mt-4 flex flex-col gap-3">
@@ -57,7 +105,7 @@ import { SupabaseService } from '../../core/services/supabase.service';
                 <div class="mt-2 h-2 w-full overflow-hidden rounded-full bg-slate-100">
                   <div class="h-full bg-accent-500" [style.width.%]="enrollment.progress_percent"></div>
                 </div>
-                <div class="mt-3">
+                <div class="mt-3 flex flex-wrap items-center gap-3">
                   @if (certificateUrl(enrollment.course_id); as pdfUrl) {
                     <a
                       [href]="pdfUrl"
@@ -76,7 +124,26 @@ import { SupabaseService } from '../../core/services/supabase.service';
                       🎓 Sertifika Al
                     </button>
                   }
+                  @if (enrollment.course?.slug) {
+                    <button
+                      type="button"
+                      class="text-sm font-semibold text-brand-900 underline disabled:opacity-50"
+                      [disabled]="coachLoading[enrollment.course_id]"
+                      (click)="toggleCoach(enrollment)"
+                    >
+                      🤖 {{ coachOpen[enrollment.course_id] ? 'Koçu Gizle' : 'İlerleme Koçun' }}
+                    </button>
+                  }
                 </div>
+
+                @if (coachLoading[enrollment.course_id]) {
+                  <p class="mt-3 text-sm text-slate-500">Koçun değerlendirmeni hazırlıyor…</p>
+                } @else if (coachOpen[enrollment.course_id] && coachMessages[enrollment.course_id]) {
+                  <div class="mt-3 rounded-md border border-accent-500/30 bg-accent-500/10 p-3">
+                    <p class="text-xs font-semibold text-brand-900">🎯 Eğitim Koçun Diyor Ki</p>
+                    <p class="mt-1 text-sm text-slate-700">{{ coachMessages[enrollment.course_id] }}</p>
+                  </div>
+                }
               </div>
             }
           </div>
@@ -99,12 +166,16 @@ export class DashboardComponent implements OnInit {
   profile: Profile | null = null;
   activeEnrollments: Enrollment[] = [];
   certificates: Certificate[] = [];
+  coachMessages: Record<string, string> = {};
+  coachLoading: Record<string, boolean> = {};
+  coachOpen: Record<string, boolean> = {};
 
   constructor(
     private readonly profileService: ProfileService,
     private readonly supabase: SupabaseService,
     private readonly enrollmentService: EnrollmentService,
     private readonly certificateService: CertificateService,
+    private readonly courseService: CourseService,
     private readonly router: Router
   ) {}
 
@@ -114,6 +185,16 @@ export class DashboardComponent implements OnInit {
       this.activeEnrollments = enrollments.filter((e) => e.payment_status !== 'pending');
     });
     this.certificateService.mine().subscribe((certificates) => (this.certificates = certificates));
+  }
+
+  get completedCourses(): Enrollment[] {
+    return this.activeEnrollments.filter((e) => e.progress_percent >= 100);
+  }
+
+  get averageProgress(): number {
+    if (!this.activeEnrollments.length) return 0;
+    const total = this.activeEnrollments.reduce((sum, e) => sum + e.progress_percent, 0);
+    return Math.round(total / this.activeEnrollments.length);
   }
 
   certificateUrl(courseId: string): string | null {
@@ -126,6 +207,29 @@ export class DashboardComponent implements OnInit {
         ...this.certificates,
         { id: '', user_id: '', course_id: courseId, issued_at: '', pdf_url: result.pdf_url },
       ];
+    });
+  }
+
+  toggleCoach(enrollment: Enrollment) {
+    const courseId = enrollment.course_id;
+    const slug = enrollment.course?.slug;
+    if (!slug) return;
+
+    if (this.coachMessages[courseId]) {
+      this.coachOpen[courseId] = !this.coachOpen[courseId];
+      return;
+    }
+
+    this.coachLoading = { ...this.coachLoading, [courseId]: true };
+    this.courseService.getCoach(slug).subscribe({
+      next: (result) => {
+        this.coachLoading = { ...this.coachLoading, [courseId]: false };
+        this.coachMessages = { ...this.coachMessages, [courseId]: result.message };
+        this.coachOpen = { ...this.coachOpen, [courseId]: true };
+      },
+      error: () => {
+        this.coachLoading = { ...this.coachLoading, [courseId]: false };
+      },
     });
   }
 

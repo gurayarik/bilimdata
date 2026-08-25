@@ -170,6 +170,19 @@ Kullanıcı isteği: oynatıcı sayfasının etrafı (video hariç, YouTube ToS 
 1. Sidebar'daki iç `max-h-[70vh] overflow-y-auto` kaydırma kutusu kullanıcılar tarafından fark edilmiyordu ("diğer dersleri göremiyorum" hissi veriyordu) — kaldırıldı, liste artık normal sayfa akışıyla kayıyor; sadece başlık + genel ilerleme çubuğu `md:sticky md:top-16` ile sabit kalıyor (opak `bg-white` arka planla, altından kayan ders satırlarının üstüne bindiği görsel hata da giderildi).
 2. Bölümler artık **akordeon (açılır/kapanır)** — `expandedSectionId` state'i, bölüm başlığına tıklayınca `toggleSection()` ile açılıp kapanıyor; sayfa yüklendiğinde veya bir sonraki/önceki derse geçildiğinde `expandActiveSection()` otomatik olarak yalnızca **izlenmekte olan dersin bulunduğu bölümü** açık getiriyor, diğerleri kapalı — uzun kurslarda (ör. 26 ders/7+ bölüm) sayfa daha az kalabalık görünüyor.
 
+## Dashboard — İstatistikler ve Yapay Zeka Destekli İlerleme Koçu
+
+Kullanıcı isteği: dashboard'da hangi eğitimlerin bitirildiğine dair ayrı bir istatistik bölümü + Claude destekli, bir eğitim koçu gibi motive edici, "şu ana kadar ne öğrendin / sırada ne var" özetleyen bir bölüm.
+
+- **Backend — `ai_service.py`:** `generate_progress_coaching(course_title, completed_titles, remaining_titles, progress_percent)` eklendi — Claude'a "deneyimli, sıcak, motive edici bir eğitim koçusun" promptuyla, tamamlanan/kalan ders başlıklarını ve yüzdeyi vererek 3-4 cümlelik akıcı bir Türkçe değerlendirme ürettiriyor (madde işareti yok, doğrudan "sen" diliyle hitap).
+- **Backend — `routers/courses.py`:** `GET /courses/{slug}/coach` (giriş gerektirir) eklendi — müfredattaki dersleri sıralı çekip kullanıcının `lesson_progress`'ine göre tamamlanan/kalan başlıklara ayırıyor, `generate_progress_coaching()`'i çağırıp `{message}` döndürüyor. Gerçek veriyle uçtan uca test edildi (Claude'dan gerçek, doğru tonlu bir yanıt alındı).
+- **Frontend — `course.service.ts`:** `getCoach(slug)` eklendi.
+- **Frontend — `dashboard.component.ts`:** 
+  - Üstte 4'lü istatistik kartı: Kayıtlı Eğitim / Tamamlanan / Ortalama İlerleme / Sertifika sayısı (tamamen mevcut `activeEnrollments`+`certificates` verisinden client-side hesaplanıyor, yeni backend gerekmedi).
+  - "Tamamladığım Eğitimler" ayrı bölümü — yalnızca %100 tamamlanan kurslar, sertifika linkiyle birlikte.
+  - Her "Eğitimlerim" kartına **"🤖 İlerleme Koçun"** butonu — tıklanınca (lazy, sayfa yüklenişinde otomatik AI çağrısı yapılmıyor — admin blog özetleme ile aynı "manuel tetikleme" konvansiyonu) `getCoach()` çağrılıp sonuç kart içinde turuncu vurgulu bir kutuda gösteriliyor; tekrar tıklamak gizliyor/gösteriyor (sonuç cache'leniyor, ikinci açılışta tekrar AI çağrısı yapılmıyor).
+- Doğrulama: `npx ng build --configuration development` hatasız; backend `TestClient` ile gerçek kullanıcı/kurs verisine karşı `/courses/{slug}/coach` denendi, 200 + anlamlı mesaj döndü.
+
 ## Commit Durumu
 
 Faz 8 + video-bitince-otomatik-ilerleme kodu tamamlandı, henüz commit edilmedi (bir sonraki adım commit).

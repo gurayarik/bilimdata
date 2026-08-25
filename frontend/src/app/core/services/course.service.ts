@@ -24,4 +24,8 @@ export class CourseService {
   getMyProgress(slug: string) {
     return this.api.get<CourseProgress>(`/courses/${slug}/my-progress`);
   }
+
+  getCoach(slug: string) {
+    return this.api.get<{ message: string }>(`/courses/${slug}/coach`);
+  }
 }

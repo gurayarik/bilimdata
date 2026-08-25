@@ -3,6 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from ..core.security import CurrentUser, get_current_user
 from ..core.supabase_client import get_supabase
 from ..models.courses import CourseOut, CurriculumSectionOut
+from ..services.ai_service import generate_progress_coaching
 
 router = APIRouter(prefix="/courses", tags=["courses"])
 
@@ -100,3 +101,55 @@ async def get_my_course_progress(slug: str, user: CurrentUser = Depends(get_curr
     progress_percent = enrollment.data[0]["progress_percent"] if enrollment.data else 0
 
     return {"completed_lesson_ids": completed_ids, "progress_percent": progress_percent}
+
+
+@router.get("/{slug}/coach")
+async def get_progress_coaching(slug: str, user: CurrentUser = Depends(get_current_user)):
+    """Kullanıcının bu kurstaki ilerlemesine göre yapay zeka destekli,
+    kişisel eğitim koçu tonunda bir değerlendirme üretir (Faz 8 dashboard)."""
+    supabase = get_supabase()
+    course = supabase.table("courses").select("id, title").eq("slug", slug).execute()
+    if not course.data:
+        raise HTTPException(status_code=404, detail="Kurs bulunamadı")
+    course_id = course.data[0]["id"]
+    course_title = course.data[0]["title"]
+
+    sections = (
+        supabase.table("course_sections")
+        .select("id, order_index, lessons(id, title, order_index)")
+        .eq("course_id", course_id)
+        .order("order_index")
+        .execute()
+    )
+    ordered_lessons = []
+    for section in sorted(sections.data, key=lambda s: s["order_index"]):
+        for lesson in sorted(section["lessons"], key=lambda lesson: lesson["order_index"]):
+            ordered_lessons.append(lesson)
+    lesson_ids = [lesson["id"] for lesson in ordered_lessons]
+
+    completed_ids: set[str] = set()
+    if lesson_ids:
+        progress = (
+            supabase.table("lesson_progress")
+            .select("lesson_id")
+            .eq("user_id", user.id)
+            .eq("completed", True)
+            .in_("lesson_id", lesson_ids)
+            .execute()
+        )
+        completed_ids = {row["lesson_id"] for row in progress.data}
+
+    completed_titles = [lesson["title"] for lesson in ordered_lessons if lesson["id"] in completed_ids]
+    remaining_titles = [lesson["title"] for lesson in ordered_lessons if lesson["id"] not in completed_ids]
+
+    enrollment = (
+        supabase.table("enrollments")
+        .select("progress_percent")
+        .eq("user_id", user.id)
+        .eq("course_id", course_id)
+        .execute()
+    )
+    progress_percent = enrollment.data[0]["progress_percent"] if enrollment.data else 0
+
+    message = await generate_progress_coaching(course_title, completed_titles, remaining_titles, progress_percent)
+    return {"message": message}
