@@ -135,6 +135,18 @@
     "title": "Eğitmenlerimizin Diğer Programları",
     "subtitle": "Eğitmenlerimizin Udemy ve diğer platformlarda sunduğu programlara göz atın."
   },
+  "deals_page": {
+    "title": "Fırsatlar",
+    "subtitle": "Udemy ve diğer platformlardaki eğitimlerimize özel kupon kodları ve indirimli fiyatlar burada.",
+    "loading": "Fırsatlar yükleniyor…",
+    "empty": "Şu anda aktif bir fırsat bulunmuyor.",
+    "get_deal": "Fırsatı Kap →"
+  },
+  "deals_teaser": {
+    "title": "Kaçırılmayacak Fırsatlar",
+    "subtitle": "Udemy'deki eğitimlerimiz ve eğitmenlerimizin diğer programları için kupon kodlarına göz atın.",
+    "cta": "Fırsatları Gör"
+  },
   "blog_page": {
     "title": "Blog",
     "empty": "Henüz yayınlanmış bir yazı yok.",

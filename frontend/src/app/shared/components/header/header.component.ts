@@ -21,9 +21,7 @@ import { LanguageSwitcherComponent } from '../language-switcher/language-switche
           <a routerLink="/" fragment="why-us" class="hover:text-accent-500">{{
             'nav.instructors' | translate
           }}</a>
-          <a routerLink="/" fragment="advantages" class="hover:text-accent-500">{{
-            'nav.deals' | translate
-          }}</a>
+          <a routerLink="/deals" class="hover:text-accent-500">{{ 'nav.deals' | translate }}</a>
           <a routerLink="/" fragment="footer" class="hover:text-accent-500">{{
             'nav.contact' | translate
           }}</a>

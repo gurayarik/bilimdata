@@ -117,35 +117,24 @@ const WHY_US_ICONS: Record<string, string> = {
     </section>
 
     <div id="advantages" class="scroll-mt-20"></div>
-    @if (udemyCourses.length) {
-      <section class="mx-auto max-w-6xl px-4 py-16">
-        <h2 class="text-center text-2xl font-bold text-brand-900 sm:text-3xl">
-          {{ 'udemy_section.title' | translate }}
-        </h2>
-        <p class="mx-auto mt-2 max-w-xl text-center text-slate-600">
-          {{ 'udemy_section.subtitle' | translate }}
-        </p>
-        <div class="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-4">
-          @for (course of udemyCourses; track course.id) {
-            <app-course-card [course]="course" />
-          }
-        </div>
-      </section>
-    }
-
-    @if (instructorExternalCourses.length) {
-      <section class="mx-auto max-w-6xl px-4 py-16">
-        <h2 class="text-center text-2xl font-bold text-brand-900 sm:text-3xl">
-          {{ 'external_section.title' | translate }}
-        </h2>
-        <p class="mx-auto mt-2 max-w-xl text-center text-slate-600">
-          {{ 'external_section.subtitle' | translate }}
-        </p>
-        <div class="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-4">
-          @for (course of instructorExternalCourses; track course.id) {
-            <app-course-card [course]="course" />
-          }
-        </div>
+    @if (hasDeals) {
+      <section class="mx-auto max-w-6xl px-4 pb-4">
+        <a
+          routerLink="/deals"
+          class="group relative flex flex-col items-center gap-4 overflow-hidden rounded-2xl bg-gradient-to-r from-accent-500 to-accent-600 px-6 py-10 text-center shadow-md transition hover:shadow-lg sm:flex-row sm:justify-between sm:text-left"
+        >
+          <div class="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/15 blur-2xl"></div>
+          <div class="relative">
+            <span class="text-3xl">🎉</span>
+            <h2 class="mt-2 text-2xl font-bold text-brand-900">{{ 'deals_teaser.title' | translate }}</h2>
+            <p class="mt-1 max-w-md text-sm text-brand-900/80">{{ 'deals_teaser.subtitle' | translate }}</p>
+          </div>
+          <span
+            class="relative shrink-0 rounded-full bg-brand-900 px-6 py-3 font-semibold text-white transition group-hover:bg-brand-800"
+          >
+            {{ 'deals_teaser.cta' | translate }} →
+          </span>
+        </a>
       </section>
     }
 
@@ -172,8 +161,7 @@ const WHY_US_ICONS: Record<string, string> = {
 export class HomeComponent implements OnInit {
   categories: Category[] = [];
   courses: Course[] = [];
-  udemyCourses: Course[] = [];
-  instructorExternalCourses: Course[] = [];
+  hasDeals = false;
   totalCourses = 0;
   totalCategories = 0;
   totalInstructors = 0;
@@ -192,12 +180,7 @@ export class HomeComponent implements OnInit {
     });
     this.courseService.list().subscribe((courses) => {
       this.courses = courses.filter((c) => c.provider === 'internal').slice(0, 4);
-      this.udemyCourses = courses.filter(
-        (c) => c.provider === 'udemy' && c.instructor?.is_platform_official !== false
-      );
-      this.instructorExternalCourses = courses.filter(
-        (c) => (c.provider === 'udemy' || c.provider === 'external') && c.instructor?.is_platform_official === false
-      );
+      this.hasDeals = courses.some((c) => c.provider === 'udemy' || c.provider === 'external');
       this.totalCourses = courses.length;
       this.totalInstructors = new Set(courses.map((c) => c.instructor?.id).filter(Boolean)).size;
     });

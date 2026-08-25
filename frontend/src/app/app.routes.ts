@@ -16,6 +16,10 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'deals',
+    loadComponent: () => import('./features/deals/deals.component').then((m) => m.DealsComponent),
+  },
+  {
     path: 'courses/:slug/lessons/:lessonId',
     loadComponent: () =>
       import('./features/courses/course-player/course-player.component').then(

@@ -279,6 +279,16 @@ Kullanıcı geri bildirimi: ana sayfa çok sade kalıyordu, daha profesyonel gö
 - Yeni i18n anahtarları: `hero.stat_courses/stat_categories/stat_instructors`, `courses_section.view_all` (tr/en).
 - Doğrulama: `npx ng build --configuration development` hatasız.
 
+## Özel "Fırsatlar" Sayfası (Plan Dışı Ek)
+
+Kullanıcı geri bildirimi: ana sayfada "Fırsatlar" tıklanınca yalnızca aynı sayfada bir bölüme kayması yetersizdi; kupon kodlarını öne çıkaran, yaratıcı, ayrı bir sayfa istendi.
+
+- **Yeni sayfa `features/deals/deals.component.ts`** (rota: `/deals`): Gradyanlı, "🎉 Fırsatlar" başlıklı bir hero banner; altında iki bölüm — "Udemy Eğitimlerimiz" (BilimData'nın resmi Udemy kursları) ve "Eğitmenlerimizin Diğer Programları" (eğitmenlerin kendi tanıttığı Udemy/harici kurslar), `is_platform_official` ayrımı korunarak. Her fırsat, standart küçük `course-card` yerine **geniş, yatay bir "deal card"** olarak gösteriliyor: kapak görseli + platform rozeti, başlık/açıklama, orijinal/indirimli/ücretsiz fiyat, ve varsa **tıklanınca panoya kopyalanan bir kupon kodu rozeti** (`navigator.clipboard.writeText`, 1.5 saniyeliğine 📋 ikonunun ✅'ye dönüşmesiyle geri bildirim veriyor) + harici linke giden "Fırsatı Kap →" butonu.
+- **Header:** "Fırsatlar" nav linki artık `fragment="advantages"` ile aynı sayfada kaydırma yerine doğrudan `routerLink="/deals"`e gidiyor.
+- **Ana sayfa sadeleştirildi:** Daha önce ana sayfada tekrar gösterilen Udemy/eğitmen kurs grid'leri kaldırıldı (tekrarı önlemek için); yerine, yalnızca gerçekten bir fırsat varsa (`hasDeals`) görünen, `/deals`'a yönlendiren **tek, dikkat çekici bir gradyan banner** ("🎉 Kaçırılmayacak Fırsatlar" + CTA) eklendi — `id="advantages"` çapası bu banner'ın hemen üstünde kalmaya devam ediyor.
+- Yeni i18n anahtarları: `deals_page.*` (title/subtitle/loading/empty/get_deal), `deals_teaser.*` (title/subtitle/cta) — tr/en.
+- Doğrulama: `npx ng build --configuration development` hatasız (yeni `deals-component` chunk'ı oluştu).
+
 ## Commit Durumu
 
 Faz 8 + video-bitince-otomatik-ilerleme kodu tamamlandı, henüz commit edilmedi (bir sonraki adım commit).

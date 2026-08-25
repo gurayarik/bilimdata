@@ -135,6 +135,18 @@
     "title": "More Programs From Our Instructors",
     "subtitle": "Check out programs our instructors offer on Udemy and other platforms."
   },
+  "deals_page": {
+    "title": "Deals",
+    "subtitle": "Special coupon codes and discounted prices for our courses on Udemy and other platforms.",
+    "loading": "Loading deals…",
+    "empty": "There are no active deals right now.",
+    "get_deal": "Get This Deal →"
+  },
+  "deals_teaser": {
+    "title": "Deals You Don't Want to Miss",
+    "subtitle": "Check out coupon codes for our Udemy courses and our instructors' other programs.",
+    "cta": "See Deals"
+  },
   "blog_page": {
     "title": "Blog",
     "empty": "No posts published yet.",
