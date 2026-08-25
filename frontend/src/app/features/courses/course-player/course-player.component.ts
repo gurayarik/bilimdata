@@ -129,15 +129,17 @@ function loadYouTubeApi(): Promise<void> {
           }
         </div>
 
-        <aside class="md:sticky md:top-24 md:h-fit">
-          <h2 class="font-semibold text-brand-900">{{ 'course_detail.curriculum' | translate }}</h2>
-          <div class="mt-2 flex items-center gap-2 text-sm text-slate-500">
-            <div class="h-2 flex-1 overflow-hidden rounded-full bg-slate-100">
-              <div class="h-full bg-accent-500 transition-all" [style.width.%]="progressPercent"></div>
+        <aside>
+          <div class="md:sticky md:top-24">
+            <h2 class="font-semibold text-brand-900">{{ 'course_detail.curriculum' | translate }}</h2>
+            <div class="mt-2 flex items-center gap-2 text-sm text-slate-500">
+              <div class="h-2 flex-1 overflow-hidden rounded-full bg-slate-100">
+                <div class="h-full bg-accent-500 transition-all" [style.width.%]="progressPercent"></div>
+              </div>
+              <span>%{{ progressPercent }}</span>
             </div>
-            <span>%{{ progressPercent }}</span>
           </div>
-          <div class="mt-3 flex max-h-[70vh] flex-col gap-3 overflow-y-auto pr-1">
+          <div class="mt-3 flex flex-col gap-3">
             @for (section of sections; track section.id) {
               <div class="overflow-hidden rounded-lg border border-slate-200">
                 <div class="flex items-center justify-between border-b border-slate-200 bg-slate-50 px-3 py-2">
