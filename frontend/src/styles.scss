@@ -12,3 +12,46 @@
 body {
   font-family: var(--font-sans);
 }
+
+/* AI/zengin metin editöründen gelen, [innerHTML] ile basılan içerikler için
+   (dashboard ilerleme koçu, blog yazıları) — Tailwind'in preflight resetinin
+   sıfırladığı başlık/liste stillerini geri kazandırır. */
+.rich-content h1,
+.rich-content h2,
+.rich-content h3,
+.rich-content h4 {
+  font-weight: 700;
+  color: var(--color-brand-900);
+  margin-top: 0.75em;
+  margin-bottom: 0.35em;
+}
+
+.rich-content h4 {
+  font-size: 0.95em;
+}
+
+.rich-content p {
+  margin-bottom: 0.6em;
+  line-height: 1.6;
+}
+
+.rich-content ul {
+  list-style: disc;
+  padding-left: 1.25em;
+  margin-bottom: 0.6em;
+}
+
+.rich-content li {
+  margin-bottom: 0.35em;
+  line-height: 1.55;
+}
+
+.rich-content strong {
+  font-weight: 700;
+  color: var(--color-brand-900);
+}
+
+.rich-content a {
+  color: var(--color-accent-600);
+  text-decoration: underline;
+}

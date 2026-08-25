@@ -33,29 +33,48 @@ async def summarize_post(content: str) -> str:
 
 async def generate_progress_coaching(
     course_title: str,
-    completed_titles: list[str],
+    completed_lessons: list[dict],
     remaining_titles: list[str],
     progress_percent: int,
 ) -> str:
     """Kullanıcının bir kurstaki ilerlemesine göre kişisel bir eğitim koçu
-    gibi motive edici, Türkçe bir özet üretir (Faz 8 dashboard)."""
-    completed_list = "\n".join(f"- {title}" for title in completed_titles) or "(henüz yok)"
+    gibi motive edici, video bazlı konu tekrarı içeren bir değerlendirme
+    üretir (Faz 8 dashboard). completed_lessons: [{"title": ..., "description": ...}]."""
+    completed_block = (
+        "\n".join(
+            f"- {lesson['title']}: {lesson['description'] or '(açıklama yok)'}"
+            for lesson in completed_lessons
+        )
+        or "(henüz tamamlanan ders yok)"
+    )
     remaining_list = "\n".join(f"- {title}" for title in remaining_titles[:8]) or "(kalan ders yok, kurs tamamlandı)"
 
     prompt = f"""Sen deneyimli, sıcak ve motive edici bir eğitim koçusun. Bir öğrencinin
 "{course_title}" adlı eğitimdeki ilerlemesini değerlendiriyorsun. Öğrenci şu ana kadar
 %{progress_percent} tamamladı.
 
-Tamamladığı dersler:
-{completed_list}
+Tamamladığı dersler (video başlığı: video içeriğinin açıklaması):
+{completed_block}
 
 Henüz izlemediği (sıradaki) dersler:
 {remaining_list}
 
-Öğrenciye doğrudan hitap ederek (sen dili ile), 3-4 cümlelik, samimi ve motive edici bir
-Türkçe değerlendirme yaz. Şu ana kadar öğrendiği konuları kısaca özetle, sırada onu neyin
-beklediğini belirt ve devam etmesi için motive edici bir kapanış cümlesi kur. Liste veya
-madde işareti kullanma, akıcı bir paragraf yaz."""
+Öğrenciye doğrudan hitap ederek (sen dili ile), yanıtını şu YALIN HTML etiketleriyle
+biçimlendir (başka hiçbir etiket, markdown işareti veya kod bloğu kullanma, düz
+metinle HTML'e başla):
+- <h4> ile kısa bir başlık
+- <p> ile 1-2 cümlelik genel motive edici giriş
+- <h4>Konu Tekrarı</h4> altında <ul><li> ile tamamladığı HER video için, o videoda
+  öğrendiği somut konuyu 1 cümlede video bazlı özetleyen bir madde (video başlığını
+  <strong> ile vurgula, ardından o dersten öğrendiği asıl bilgiyi tekrar ettir —
+  yalnızca başlığı tekrar etme, açıklamadaki içeriği kullanarak gerçek bir konu
+  tekrarı yap)
+- <h4>Sırada Ne Var</h4> altında <p> ile sıradaki 1-2 konudan bahseden kısa bir
+  paragraf
+- En sonda <p><strong>...</strong></p> ile kısa, motive edici bir kapanış cümlesi
+
+Kalan ders yoksa (kurs tamamlandıysa) "Sırada Ne Var" yerine kursu bitirmiş olmanın
+kutlamasını yaz. Toplam yanıt 200 kelimeyi geçmesin."""
 
     async with httpx.AsyncClient(timeout=60) as client:
         response = await client.post(
@@ -67,7 +86,7 @@ madde işareti kullanma, akıcı bir paragraf yaz."""
             },
             json={
                 "model": "claude-sonnet-5",
-                "max_tokens": 400,
+                "max_tokens": 900,
                 "messages": [{"role": "user", "content": prompt}],
             },
         )

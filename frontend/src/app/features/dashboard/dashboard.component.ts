@@ -139,9 +139,11 @@ import { SupabaseService } from '../../core/services/supabase.service';
                 @if (coachLoading[enrollment.course_id]) {
                   <p class="mt-3 text-sm text-slate-500">Koçun değerlendirmeni hazırlıyor…</p>
                 } @else if (coachOpen[enrollment.course_id] && coachMessages[enrollment.course_id]) {
-                  <div class="mt-3 rounded-md border border-accent-500/30 bg-accent-500/10 p-3">
-                    <p class="text-xs font-semibold text-brand-900">🎯 Eğitim Koçun Diyor Ki</p>
-                    <p class="mt-1 text-sm text-slate-700">{{ coachMessages[enrollment.course_id] }}</p>
+                  <div class="coach-message mt-3 rounded-md border border-accent-500/30 bg-accent-500/10 p-4">
+                    <p class="mb-2 text-xs font-semibold uppercase tracking-wide text-accent-600">
+                      🎯 Eğitim Koçun Diyor Ki
+                    </p>
+                    <div class="rich-content text-sm text-slate-700" [innerHTML]="coachMessages[enrollment.course_id]"></div>
                   </div>
                 }
               </div>

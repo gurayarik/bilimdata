@@ -116,7 +116,7 @@ async def get_progress_coaching(slug: str, user: CurrentUser = Depends(get_curre
 
     sections = (
         supabase.table("course_sections")
-        .select("id, order_index, lessons(id, title, order_index)")
+        .select("id, order_index, lessons(id, title, description, order_index)")
         .eq("course_id", course_id)
         .order("order_index")
         .execute()
@@ -139,7 +139,11 @@ async def get_progress_coaching(slug: str, user: CurrentUser = Depends(get_curre
         )
         completed_ids = {row["lesson_id"] for row in progress.data}
 
-    completed_titles = [lesson["title"] for lesson in ordered_lessons if lesson["id"] in completed_ids]
+    completed_lessons = [
+        {"title": lesson["title"], "description": lesson["description"]}
+        for lesson in ordered_lessons
+        if lesson["id"] in completed_ids
+    ][-20:]  # Prompt boyutunu sınırlamak için en fazla en son tamamlanan 20 ders.
     remaining_titles = [lesson["title"] for lesson in ordered_lessons if lesson["id"] not in completed_ids]
 
     enrollment = (
@@ -151,5 +155,5 @@ async def get_progress_coaching(slug: str, user: CurrentUser = Depends(get_curre
     )
     progress_percent = enrollment.data[0]["progress_percent"] if enrollment.data else 0
 
-    message = await generate_progress_coaching(course_title, completed_titles, remaining_titles, progress_percent)
+    message = await generate_progress_coaching(course_title, completed_lessons, remaining_titles, progress_percent)
     return {"message": message}

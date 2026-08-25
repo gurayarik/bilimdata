@@ -183,6 +183,14 @@ Kullanıcı isteği: dashboard'da hangi eğitimlerin bitirildiğine dair ayrı b
   - Her "Eğitimlerim" kartına **"🤖 İlerleme Koçun"** butonu — tıklanınca (lazy, sayfa yüklenişinde otomatik AI çağrısı yapılmıyor — admin blog özetleme ile aynı "manuel tetikleme" konvansiyonu) `getCoach()` çağrılıp sonuç kart içinde turuncu vurgulu bir kutuda gösteriliyor; tekrar tıklamak gizliyor/gösteriyor (sonuç cache'leniyor, ikinci açılışta tekrar AI çağrısı yapılmıyor).
 - Doğrulama: `npx ng build --configuration development` hatasız; backend `TestClient` ile gerçek kullanıcı/kurs verisine karşı `/courses/{slug}/coach` denendi, 200 + anlamlı mesaj döndü.
 
+## İlerleme Koçu — Zengin Biçimlendirme ve Video Bazlı Konu Tekrarı
+
+Kullanıcı geri bildirimi: koç mesajı çok kısa/düz metindi; video bazlı gerçek konu tekrarı yapmalı ve daha "şık" (biçimlendirilmiş) görünmeli.
+
+- **`generate_progress_coaching()` güncellendi:** Artık yalnızca ders başlıkları değil, tamamlanan derslerin `description` alanı da prompta veriliyor ("video başlığı: video içeriğinin açıklaması" formatında, prompt boyutunu sınırlamak için en fazla en son tamamlanan 20 ders — `routers/courses.py`'de `[-20:]`). Claude'dan düz metin yerine sınırlı, güvenli HTML etiketleriyle (`<h4>`, `<p>`, `<ul><li>`, `<strong>`) yanıt vermesi isteniyor: kısa başlık → "Konu Tekrarı" altında **her tamamlanan video için ayrı madde, o videonun açıklamasından gerçek içerik özetiyle** (yalnızca başlığı tekrarlamıyor) → "Sırada Ne Var" → motive edici kapanış. Harici markdown kütüphanesi eklemek yerine (proje konvansiyonuna uygun, bkz. native rich-text-editor) doğrudan HTML üretimi tercih edildi.
+- **Frontend:** `dashboard.component.ts`'de koç mesajı artık `{{ }}` interpolasyonu yerine `[innerHTML]` ile basılıyor (Angular'ın varsayılan sanitizer'ı güvenliği sağlıyor, blog içerik render deseniyle aynı). Yeni paylaşılan `.rich-content` CSS sınıfı (`styles.scss`) eklendi — Tailwind'in preflight resetinin sıfırladığı `h1-h4`/`ul`/`li`/`strong`/`a` stillerini geri kazandırıyor; bu sınıf hem koç mesajına hem de (tutarlılık için) `blog-detail.component.ts`'deki blog içeriğine uygulandı (önceden kurulu olmayan `@tailwindcss/typography` eklentisine ihtiyaç olmadan).
+- Doğrulama: Gerçek kullanıcı/kurs verisiyle uçtan uca test edildi — Claude, her tamamlanan video için gerçek ve doğru bir konu tekrarı (ör. "stack ve heap yapıları arasındaki farkı kavradın") üreterek doğru HTML yapısında yanıt verdi. `npx ng build --configuration development` hatasız.
+
 ## Commit Durumu
 
 Faz 8 + video-bitince-otomatik-ilerleme kodu tamamlandı, henüz commit edilmedi (bir sonraki adım commit).

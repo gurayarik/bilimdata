@@ -72,7 +72,7 @@ function extractYouTubeId(url: string): string | null {
         }
 
         <div
-          class="prose prose-slate mt-8 max-w-none whitespace-pre-line text-slate-700"
+          class="rich-content mt-8 max-w-none whitespace-pre-line text-slate-700"
           [innerHTML]="post.content"
         ></div>
 
