@@ -29,128 +29,180 @@ function emptyForm(): CourseForm {
   standalone: true,
   imports: [FormsModule, RouterLink],
   template: `
-    <section class="mx-auto max-w-4xl px-4 py-10">
-      <div class="flex items-center justify-between">
-        <h1 class="text-xl font-bold text-brand-900">Kurslarım</h1>
-        <a routerLink="/instructor/lessons" class="text-sm font-semibold text-brand-900 hover:underline">
-          Ders Yönetimine Git →
-        </a>
+    <section class="mx-auto max-w-5xl px-4 py-10">
+      <div class="overflow-hidden rounded-2xl bg-gradient-to-br from-brand-900 to-brand-800 px-6 py-8 text-white shadow-md sm:px-8">
+        <div class="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <h1 class="text-xl font-bold sm:text-2xl">Kurslarım</h1>
+            <p class="mt-1 text-sm text-white/70">{{ courses.length }} kurs yönetiyorsun</p>
+          </div>
+          <div class="flex flex-wrap gap-2">
+            <a
+              routerLink="/instructor/lessons"
+              class="rounded-full bg-white/10 px-4 py-2 text-sm font-semibold hover:bg-white/20"
+            >
+              📚 Ders Yönetimi
+            </a>
+            <button
+              type="button"
+              class="rounded-full bg-accent-500 px-4 py-2 text-sm font-semibold text-brand-900 hover:bg-accent-600"
+              (click)="openCreateForm()"
+            >
+              + Yeni Kurs
+            </button>
+          </div>
+        </div>
       </div>
 
-      <table class="mt-6 w-full text-left text-sm">
-        <thead>
-          <tr class="border-b border-slate-200 text-slate-500">
-            <th class="py-2">Başlık</th>
-            <th>Fiyat</th>
-            <th>Yayında</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
+      @if (courses.length) {
+        <div class="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2">
           @for (course of courses; track course.id) {
-            <tr class="border-b border-slate-100">
-              <td class="py-2">{{ course.title }}</td>
-              <td>{{ course.discount_price ?? course.price }} ₺</td>
-              <td>{{ course.is_published ? 'Evet' : 'Hayır' }}</td>
-              <td class="flex gap-2 py-2 text-right">
-                <button type="button" class="text-brand-900 hover:underline" (click)="edit(course)">
-                  Düzenle
-                </button>
-                <button type="button" class="text-red-600 hover:underline" (click)="remove(course)">
-                  Sil
-                </button>
-              </td>
-            </tr>
-          }
-        </tbody>
-      </table>
-
-      <h2 class="mt-10 text-lg font-bold text-brand-900">
-        {{ editingId ? 'Kursu Düzenle' : 'Yeni Kurs' }}
-      </h2>
-      <form class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2" (ngSubmit)="save()">
-        <label class="flex flex-col gap-1 text-sm">
-          Başlık
-          <input class="rounded-md border border-slate-300 px-3 py-2" [(ngModel)]="form.title" name="title" required />
-        </label>
-        <label class="flex flex-col gap-1 text-sm">
-          Slug
-          <input class="rounded-md border border-slate-300 px-3 py-2" [(ngModel)]="form.slug" name="slug" required />
-        </label>
-        <label class="col-span-2 flex flex-col gap-1 text-sm">
-          Kısa Açıklama
-          <input
-            class="rounded-md border border-slate-300 px-3 py-2"
-            [(ngModel)]="form.short_description"
-            name="short_description"
-          />
-        </label>
-        <label class="col-span-2 flex flex-col gap-1 text-sm">
-          Açıklama
-          <textarea
-            class="rounded-md border border-slate-300 px-3 py-2"
-            rows="4"
-            [(ngModel)]="form.description"
-            name="description"
-          ></textarea>
-        </label>
-        <label class="col-span-2 flex flex-col gap-1 text-sm">
-          Kapak Görseli URL
-          <input
-            class="rounded-md border border-slate-300 px-3 py-2"
-            [(ngModel)]="form.cover_image_url"
-            name="cover_image_url"
-          />
-        </label>
-        <label class="flex flex-col gap-1 text-sm">
-          Kategori
-          <select class="rounded-md border border-slate-300 px-3 py-2" [(ngModel)]="form.category_id" name="category_id">
-            <option [ngValue]="null">—</option>
-            @for (cat of categories; track cat.id) {
-              <option [ngValue]="cat.id">{{ cat.name }}</option>
-            }
-          </select>
-        </label>
-        <label class="flex flex-col gap-1 text-sm">
-          Seviye
-          <select class="rounded-md border border-slate-300 px-3 py-2" [(ngModel)]="form.level" name="level">
-            <option value="beginner">Başlangıç</option>
-            <option value="intermediate">Orta</option>
-            <option value="advanced">İleri</option>
-          </select>
-        </label>
-        <label class="flex flex-col gap-1 text-sm">
-          Fiyat (₺)
-          <input type="number" class="rounded-md border border-slate-300 px-3 py-2" [(ngModel)]="form.price" name="price" />
-        </label>
-        <label class="flex flex-col gap-1 text-sm">
-          İndirimli Fiyat (₺)
-          <input
-            type="number"
-            class="rounded-md border border-slate-300 px-3 py-2"
-            [(ngModel)]="form.discount_price"
-            name="discount_price"
-          />
-        </label>
-        <label class="flex items-center gap-2 text-sm">
-          <input type="checkbox" [(ngModel)]="form.is_published" name="is_published" />
-          Yayında
-        </label>
-
-        <div class="col-span-2 flex gap-3">
-          <button
-            type="submit"
-            class="rounded-md bg-accent-500 px-5 py-2 font-semibold text-brand-900 hover:bg-accent-600"
-          >
-            {{ editingId ? 'Güncelle' : 'Oluştur' }}
-          </button>
-          @if (editingId) {
-            <button type="button" class="rounded-md border border-slate-300 px-5 py-2 text-sm" (click)="resetForm()">
-              Vazgeç
-            </button>
+            <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:shadow-md">
+              <div class="relative aspect-video w-full bg-slate-100">
+                @if (course.cover_image_url) {
+                  <img [src]="course.cover_image_url" class="h-full w-full object-cover" [alt]="course.title" />
+                } @else {
+                  <div class="flex h-full items-center justify-center text-3xl">📘</div>
+                }
+                <span
+                  class="absolute right-2 top-2 rounded-full px-2 py-0.5 text-xs font-semibold text-white shadow"
+                  [class]="course.is_published ? 'bg-emerald-500' : 'bg-slate-500'"
+                >
+                  {{ course.is_published ? 'Yayında' : 'Taslak' }}
+                </span>
+              </div>
+              <div class="p-4">
+                <p class="font-semibold text-brand-900">{{ course.title }}</p>
+                <p class="mt-1 text-sm text-slate-500">
+                  {{ course.discount_price ?? course.price }} ₺
+                  @if (course.discount_price !== null && course.discount_price !== undefined) {
+                    <span class="ml-1 text-xs text-slate-400 line-through">{{ course.price }} ₺</span>
+                  }
+                </p>
+                <div class="mt-4 flex gap-2">
+                  <button
+                    type="button"
+                    class="rounded-full border border-slate-200 px-3 py-1.5 text-xs font-semibold text-brand-900 hover:bg-slate-50"
+                    (click)="edit(course)"
+                  >
+                    ✏️ Düzenle
+                  </button>
+                  <button
+                    type="button"
+                    class="rounded-full border border-red-200 px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-50"
+                    (click)="remove(course)"
+                  >
+                    🗑️ Sil
+                  </button>
+                </div>
+              </div>
+            </div>
           }
         </div>
-      </form>
+      } @else {
+        <div class="mt-8 flex flex-col items-center gap-3 rounded-2xl border border-dashed border-slate-300 py-16 text-center">
+          <span class="text-4xl">🗂️</span>
+          <p class="text-sm text-slate-500">Henüz bir kurs oluşturmadın.</p>
+        </div>
+      }
+
+      @if (showForm) {
+        <div class="mt-10 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+          <div class="flex items-center justify-between">
+            <h2 class="text-lg font-bold text-brand-900">
+              {{ editingId ? 'Kursu Düzenle' : 'Yeni Kurs' }}
+            </h2>
+            <button type="button" class="text-sm text-slate-500 hover:text-slate-700" (click)="resetForm()">
+              ✕ Kapat
+            </button>
+          </div>
+          <form class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2" (ngSubmit)="save()">
+            <label class="flex flex-col gap-1 text-sm">
+              Başlık
+              <input class="rounded-md border border-slate-300 px-3 py-2" [(ngModel)]="form.title" name="title" required />
+            </label>
+            <label class="flex flex-col gap-1 text-sm">
+              Slug
+              <input class="rounded-md border border-slate-300 px-3 py-2" [(ngModel)]="form.slug" name="slug" required />
+            </label>
+            <label class="col-span-2 flex flex-col gap-1 text-sm">
+              Kısa Açıklama
+              <input
+                class="rounded-md border border-slate-300 px-3 py-2"
+                [(ngModel)]="form.short_description"
+                name="short_description"
+              />
+            </label>
+            <label class="col-span-2 flex flex-col gap-1 text-sm">
+              Açıklama
+              <textarea
+                class="rounded-md border border-slate-300 px-3 py-2"
+                rows="4"
+                [(ngModel)]="form.description"
+                name="description"
+              ></textarea>
+            </label>
+            <label class="col-span-2 flex flex-col gap-1 text-sm">
+              Kapak Görseli URL
+              <input
+                class="rounded-md border border-slate-300 px-3 py-2"
+                [(ngModel)]="form.cover_image_url"
+                name="cover_image_url"
+              />
+            </label>
+            <label class="flex flex-col gap-1 text-sm">
+              Kategori
+              <select class="rounded-md border border-slate-300 px-3 py-2" [(ngModel)]="form.category_id" name="category_id">
+                <option [ngValue]="null">—</option>
+                @for (cat of categories; track cat.id) {
+                  <option [ngValue]="cat.id">{{ cat.name }}</option>
+                }
+              </select>
+            </label>
+            <label class="flex flex-col gap-1 text-sm">
+              Seviye
+              <select class="rounded-md border border-slate-300 px-3 py-2" [(ngModel)]="form.level" name="level">
+                <option value="beginner">Başlangıç</option>
+                <option value="intermediate">Orta</option>
+                <option value="advanced">İleri</option>
+              </select>
+            </label>
+            <label class="flex flex-col gap-1 text-sm">
+              Fiyat (₺)
+              <input type="number" class="rounded-md border border-slate-300 px-3 py-2" [(ngModel)]="form.price" name="price" />
+            </label>
+            <label class="flex flex-col gap-1 text-sm">
+              İndirimli Fiyat (₺)
+              <input
+                type="number"
+                class="rounded-md border border-slate-300 px-3 py-2"
+                [(ngModel)]="form.discount_price"
+                name="discount_price"
+              />
+            </label>
+            <label class="flex items-center gap-2 text-sm">
+              <input type="checkbox" [(ngModel)]="form.is_published" name="is_published" />
+              Yayında
+            </label>
+
+            <div class="col-span-2 flex gap-3">
+              <button
+                type="submit"
+                class="rounded-full bg-accent-500 px-5 py-2 text-sm font-semibold text-brand-900 hover:bg-accent-600"
+              >
+                {{ editingId ? 'Güncelle' : 'Oluştur' }}
+              </button>
+              <button
+                type="button"
+                class="rounded-full border border-slate-300 px-5 py-2 text-sm hover:bg-slate-50"
+                (click)="resetForm()"
+              >
+                Vazgeç
+              </button>
+            </div>
+          </form>
+        </div>
+      }
     </section>
   `,
 })
@@ -159,6 +211,7 @@ export class InstructorMyCoursesComponent implements OnInit {
   categories: Category[] = [];
   form: CourseForm = emptyForm();
   editingId: string | null = null;
+  showForm = false;
 
   constructor(
     private readonly instructorService: InstructorService,
@@ -174,14 +227,22 @@ export class InstructorMyCoursesComponent implements OnInit {
     this.instructorService.listCourses().subscribe((courses) => (this.courses = courses));
   }
 
+  openCreateForm() {
+    this.editingId = null;
+    this.form = emptyForm();
+    this.showForm = true;
+  }
+
   edit(course: AdminCourse) {
     this.editingId = course.id;
     this.form = { ...course };
+    this.showForm = true;
   }
 
   resetForm() {
     this.editingId = null;
     this.form = emptyForm();
+    this.showForm = false;
   }
 
   save() {

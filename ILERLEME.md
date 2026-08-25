@@ -235,6 +235,14 @@ Kullanıcı geri bildirimi: dashboard çok sade kalıyordu, daha kullanışlı/g
 - Yeni i18n anahtarları: `dashboard.continue_cta`, `dashboard.start_cta`, `dashboard.browse_courses_cta` (tr/en).
 - Doğrulama: `npx ng build --configuration development` hatasız (yalnızca zararsız bir Angular "gereksiz optional chaining" uyarısı var, hata değil).
 
+## Eğitmen Paneli Yeniden Tasarımı
+
+Kullanıcı geri bildirimi: `/instructor/courses` ve `/instructor/lessons` sayfaları da dashboard'daki gibi düz tablo/form görünümündeydi, tasarım olarak zayıftı.
+
+- **`my-courses.component.ts`:** Aynı hero banner deseni (gradyan + kurs sayısı özeti + "Ders Yönetimi"/"Yeni Kurs" pill butonları). Düz tablo yerine kapak görselli kart grid'i (`sm:grid-cols-2`) — Yayında/Taslak rozeti, indirimli/normal fiyat, "✏️ Düzenle"/"🗑️ Sil" pill butonları. Form artık her zaman açık değil — "+ Yeni Kurs" veya "Düzenle" tıklanınca `showForm` ile açılan bir kart, "✕ Kapat" ile gizlenebiliyor.
+- **`my-lessons.component.ts`:** Hero banner içine gömülü, beyaz arka planlı kurs seçici. Bölümler kart olarak, her ders satırında sıra numarası rozeti (dairesel), önizleme etiketi, kaynak dosyaları artık liste yerine küçük "chip" rozetleri. Bölüm/ders silme butonları kırmızı pill'e dönüştürüldü, "+ Ders Ekle"/"+ Bölüm Ekle" turuncu/kesikli-çerçeve vurgusuyla belirginleşti. Kurs seçilmeden önce davetkar bir boş durum ekranı eklendi.
+- Doğrulama: `npx ng build --configuration development` hatasız.
+
 ## Commit Durumu
 
 Faz 8 + video-bitince-otomatik-ilerleme kodu tamamlandı, henüz commit edilmedi (bir sonraki adım commit).
