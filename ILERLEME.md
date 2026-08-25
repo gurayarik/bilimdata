@@ -303,26 +303,58 @@ Kullanıcı isteği: `/auth/login` ve `/auth/register` sayfaları da ikonlu ve m
 - **Gerçek logo:** Düz "BilimData" metni yerine yeniden kullanılabilir `shared/components/logo/logo.component.ts` eklendi — turuncu (accent-500) yuvarlatılmış kare rozet içinde artan yükseklikte 3 çubuk + tepede bir nokta (yükselen veri/büyüme motifi, lacivert brand-900 renginde), yanında "Bilim" (beyaz) + "Data" (turuncu) iki tonlu wordmark. Header, login ve register sayfalarındaki düz metin logo bu bileşenle değiştirildi.
 - Doğrulama: `npx ng build --configuration development` hatasız.
 
+## AI Sağlayıcı Soyutlaması (OpenAI / DeepSeek + Prompt Caching)
+
+Kullanıcı isteği: Claude Haiku dışında OpenAI ve DeepSeek'in ucuz modellerini de deneyebilmek, fiyat artışına karşı esneklik.
+
+- `backend/app/services/ai_service.py`: Tüm AI çağrıları (`summarize_post`, `generate_progress_coaching`, `generate_quiz_questions`, `chat_with_course_assistant`) artık ortak bir `_call_llm()` üzerinden gidiyor. `AI_PROVIDER` env değişkeni (`anthropic` | `openai` | `deepseek`) ile tek satır değişiklikle sağlayıcı değiştirilebiliyor. OpenAI ve DeepSeek aynı Chat Completions şemasını paylaştığı için `_call_openai_compatible()` ortak yardımcı fonksiyonu yazıldı.
+- **Anthropic prompt caching** eklendi: sistem promptu (özellikle kurs sohbet asistanındaki tekrar eden müfredat bağlamı) `cache_control: {"type": "ephemeral"}` ile işaretleniyor, girdi maliyetini düşürüyor.
+- Yeni env değişkenleri: `OPENAI_API_KEY`, `OPENAI_MODEL` (varsayılan `gpt-5-mini`), `DEEPSEEK_API_KEY`, `DEEPSEEK_MODEL` (varsayılan `deepseek-v4-flash`), `AI_PROVIDER`.
+- Fiyat/kalite karşılaştırması yapıldı (Haiku 4.5 vs GPT-5-mini vs DeepSeek V4 Flash) ve 500 GAK senaryosunda aylık maliyet tahmini çıkarıldı (~$40 Haiku / ~$13 GPT-5-mini / ~$4 DeepSeek) — karar kullanıcıya bırakıldı, altyapı üçünü de destekliyor.
+
+## Admin Panelinin Modernizasyonu
+
+Kullanıcı geri bildirimi: admin paneli "çok basit" görünüyordu.
+
+- `admin-nav.component.ts`: Gradyanlı başlık banner'ı + ikonlu pill-tab navigasyon; Kayıt Onayları, Eğitmen Başvuruları ve İletişim sekmelerinde **bekleyen sayısını gösteren kırmızı rozet**.
+- Kurs/blog yönetimi düz tablo yerine kapak görselli kart grid'i / satır kartlarına çevrildi; kayıt onayları ve eğitmen başvuruları avatar rozetli kart listesine dönüştü. Hepsi dashboard/eğitmen paneliyle aynı tasarım dilinde (`rounded-2xl`, pill buton, ikon rozet).
+- Kayıt Onayları sayfasındaki yanlış/kafa karıştırıcı açıklama metni düzeltildi (yalnızca **ücretli** kurslardaki onaysız ödemeler listeleniyor, "free" kayıtlar zaten anında aktif oluyor).
+
+## Gizlilik Politikası ve Kullanım Koşulları
+
+- `/privacy` ve `/terms` route'ları eklendi. İçerik platforma özel (Supabase/YouTube/AI sağlayıcıları, Udemy/harici platform tanıtımlarında BilimData'nın sorumlu olmadığı, AI içeriğinin bilgilendirme amaçlı olduğu, KVKK hakları vb.), TR/EN header dil seçiciyle anında değişiyor. Footer'daki placeholder linkler gerçek sayfalara bağlandı.
+
+## İletişim Formu ve Admin Yanıt Paneli
+
+- Yeni `contact_messages` tablosu (migration `0018_contact_messages.sql`, **uygulandı**).
+- `POST /contact` (herkese açık, giriş yapmışsa hesapla ilişkilendiriliyor) + `/admin/contact-messages` (listele, filtrele) + `/admin/contact-messages/{id}/reply` (yanıt kaydet, `status='answered'`).
+- Herkese açık `/contact` sayfası (giriş yapmış kullanıcının adı/e-postası otomatik doluyor) + admin panelde 📬 rozetli yeni sekme, Tümü/Yeni/Yanıtlanmış filtreli.
+- **Not:** E-posta gönderim altyapısı (SMTP) yok — yanıt yalnızca sistemde tutuluyor, admin gerçek dönüşü kullanıcının e-postasına manuel yapmalı.
+
+## Deploy Denemesi (Devam Ediyor)
+
+Kullanıcı üretime almaya karar verdi: **Frontend → Netlify (ücretsiz), Backend → Render (ücretsiz, cold-start kabul edildi), Supabase zaten ayrı barınıyor.**
+
+- **Backend Render'a deploy edildi ve çalışıyor**: `https://bilimdata.onrender.com` — `/health` ve `/courses` doğrulandı, CORS `https://bilimdata.netlify.app` origin'i için doğru yapılandırılmış.
+- **Frontend önce Cloudflare Pages'e denendi**: Cloudflare artık Pages'i Workers ile birleştirdiği için `wrangler deploy` statik build çıktısını bulamıyordu (`ERR_CONNECTION_RESET`). `frontend/wrangler.jsonc` (assets.directory + `not_found_handling: single-page-application`) eklenerek config sorunu çözüldü, ama **ayrı bir sorun** ortaya çıktı: kullanıcının ağında (Türk Telekom) `*.workers.dev` ve `*.netlify.app` gibi domainler "Güvenli İnternet" filtresi tarafından engelleniyor/sıfırlanıyor (hem sabit hat hem mobil hotspot'ta doğrulandı; VPN ile açılabildiği teyit edildi — yani **kod/deploy sorunu değil, ağ/ISP filtresi sorunu**).
+- **Frontend'i Netlify'a taşındı**: `https://bilimdata.netlify.app` — deploy başarılı ("Site is live"), build ayarları: root `frontend`, build command `npm run build`, publish directory `frontend/dist/frontend/browser`.
+- `frontend/src/environments/environment.prod.ts` gerçek Supabase bilgileri ve `apiBaseUrl: https://bilimdata.onrender.com` ile güncellendi (commit `4df6448`, kullanıcı tarafından yapıldı).
+- **Kalan blokaj:** Türk Telekom'un `*.netlify.app`/`*.workers.dev` gibi paylaşımlı platform domainlerini filtrelemesi nedeniyle, **kalıcı çözüm olarak kendi domain'imizi bağlamamız gerekiyor** (kullanıcının Cloudflare hesabında zaten kayıtlı `ogrenebilirsin.com` domaini bu iş için uygun aday). Bu hem filtre sorununu ortadan kaldırır hem de daha profesyonel bir adres sağlar.
+- Supabase Dashboard → Authentication → URL Configuration'a `https://bilimdata.netlify.app` eklenmesi hatırlatıldı (Google OAuth için gerekli) — kullanıcı tarafından henüz teyit edilmedi, bir sonraki oturumda kontrol edilmeli.
+
 ## Commit Durumu
 
-Güncel — son commit `bf349ce` ("giriş/kayıt sayfalarını yeniden tasarla, gerçek logo ekle"). Commit edilmemiş değişiklik yok (`git status` temiz).
+Güncel — son commit `77824ee` ("Cloudflare Workers için statik SPA assets konfigürasyonu ekle"). Commit edilmemiş değişiklik yok (`git status` temiz). `supabase/migrations/0018_contact_messages.sql` kullanıcı tarafından Supabase'de çalıştırıldı ve doğrulandı.
 
 ## Şu Anda Neredeyiz / Sırada Ne Var
 
-Tamamlanan: **Faz 0 → Faz 4, Faz 6, Faz 7, Faz 8** (CLAUDE.md roadmap'inin Faz 5 — Ödeme dışındaki tamamı) + çok sayıda plan dışı ek:
+Tamamlanan: **Faz 0 → Faz 4, Faz 6, Faz 7, Faz 8** (CLAUDE.md roadmap'inin Faz 5 — Ödeme dışındaki tamamı) + çok sayıda plan dışı ek (bkz. yukarıdaki bölümler): çoklu platform/eğitmen desteği, blog etkileşimi, otomatik ilerleme + course-player yeniden tasarımı, AI destekli ilerleme koçu + sınav modülü + RAG kurs sohbeti (artık OpenAI/DeepSeek de destekliyor + Anthropic prompt caching), eğitmen paneli/ana sayfa/giriş-kayıt/admin panel modern tasarımı + logo, `/deals` sayfası, router anchor-scrolling düzeltmesi, i18n tamamlığı, Gizlilik/Kullanım Koşulları sayfaları, İletişim formu + admin yanıt paneli.
 
-- Udemy kupon entegrasyonu → genelleştirilmiş **çoklu platform** desteği (`internal`/`udemy`/`external`), BilimData'nın resmi kursları ile eğitmenlerin kendi tanıttığı kursların ayrımı (`instructor.is_platform_official`)
-- Çoklu eğitmen sistemi (başvuru/onay, kendi kurs/ders yönetimi, artık Udemy/harici platform tanıtımı da yapabiliyor)
-- Blog etkileşimi (yorum/beğeni), kullanıcı blog yazıları, zengin metin editörlü `/blog/write`
-- **Video bitince otomatik ilerleme + sonraki derse geçiş** (YouTube IFrame API + süre bazlı yedek kontrol)
-- **Course-player profesyonel yeniden tasarımı** (akordeon müfredat, önceki/sonraki ders, ilerleme özeti)
-- **Dashboard**: istatistik kartları, kapak görselli kurs grid'i, **AI destekli ilerleme koçu** (video bazlı konu tekrarı, HTML biçimli)
-- **AI destekli sınav modülü**: her 20 ders için 10 soruluk, önbelleklenen, sınırsız denemeli çoktan seçmeli sınav
-- **RAG tarzı kurs sohbet asistanı**: kurs müfredatı+fiyatını bağlam alan, günlük 40 mesaj limitli, dil-duyarlı (TR/EN) sohbet widget'ı
-- AI maliyeti için tüm çağrılar Haiku modeline geçirildi
-- **Eğitmen paneli, ana sayfa, giriş/kayıt sayfaları** dashboard'la tutarlı, modern bir tasarıma kavuşturuldu; gerçek bir **logo** (`LogoComponent`) tasarlandı
-- Özel **`/deals` (Fırsatlar) sayfası**: kopyalanabilir kupon kodlu, iki bölümlü (BilimData Udemy / eğitmen tanıtımları) "deal card" tasarımı
-- Router'da **anchor scrolling hiç etkin değildi** — kök neden bulunup düzeltildi, tüm `fragment` linkleri artık çalışıyor
-- i18n boşlukları (dashboard, kurs sohbeti) kapatıldı; AI çıktıları da seçili dile göre üretiliyor
+**Kalan (v1 roadmap'te):** Yalnızca **Faz 5 — Ödeme Entegrasyonu** (bilinçli olarak v2'ye ertelendi).
 
-**Kalan:** Yalnızca **Faz 5 — Ödeme Entegrasyonu** (bilinçli olarak v2'ye ertelendi, manuel/pending onay akışı v1'de yeterli görülüyor). Aktif bir hata veya yarım kalmış iş yok. Bir sonraki oturumda kullanıcıyla yeni yön netleştirilecek (ör. ödeme entegrasyonu veya başka bir sayfanın/özelliğin iyileştirilmesi).
+**Sırada (aktif, deploy):**
+1. Kendi domain'i (`ogrenebilirsin.com` veya benzeri) Netlify'daki siteye bağlamak — Türk Telekom "Güvenli İnternet" filtresini kalıcı olarak aşmanın tek yolu bu.
+2. Supabase Auth redirect URL'lerine prod domain'ini eklemek (Google login için).
+3. Domain bağlandıktan sonra siteyi gerçek bir kullanıcı akışıyla (kayıt ol → kurs izle → AI özellikleri) uçtan uca test etmek.
+
+Aktif bir kod hatası yok; kalan iş tamamen deploy/altyapı tarafında.
