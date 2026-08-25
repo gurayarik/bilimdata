@@ -21,6 +21,9 @@ function emptyForm(): CourseForm {
     level: 'beginner',
     language: 'tr',
     is_published: false,
+    provider: 'internal',
+    external_url: '',
+    coupon_code: '',
   };
 }
 
@@ -70,15 +73,29 @@ function emptyForm(): CourseForm {
                 >
                   {{ course.is_published ? 'Yayında' : 'Taslak' }}
                 </span>
+                @if (course.provider === 'udemy') {
+                  <span class="absolute left-2 top-2 rounded-full bg-purple-600 px-2 py-0.5 text-xs font-semibold text-white shadow">
+                    🔗 Udemy
+                  </span>
+                }
               </div>
               <div class="p-4">
                 <p class="font-semibold text-brand-900">{{ course.title }}</p>
-                <p class="mt-1 text-sm text-slate-500">
-                  {{ course.discount_price ?? course.price }} ₺
-                  @if (course.discount_price !== null && course.discount_price !== undefined) {
-                    <span class="ml-1 text-xs text-slate-400 line-through">{{ course.price }} ₺</span>
-                  }
-                </p>
+                @if (course.provider === 'udemy') {
+                  <p class="mt-1 text-sm text-slate-500">
+                    Udemy üzerinden satılıyor
+                    @if (course.coupon_code) {
+                      <span class="ml-1 rounded bg-slate-100 px-1.5 py-0.5 text-xs font-mono">{{ course.coupon_code }}</span>
+                    }
+                  </p>
+                } @else {
+                  <p class="mt-1 text-sm text-slate-500">
+                    {{ course.discount_price ?? course.price }} ₺
+                    @if (course.discount_price !== null && course.discount_price !== undefined) {
+                      <span class="ml-1 text-xs text-slate-400 line-through">{{ course.price }} ₺</span>
+                    }
+                  </p>
+                }
                 <div class="mt-4 flex gap-2">
                   <button
                     type="button"
@@ -184,6 +201,34 @@ function emptyForm(): CourseForm {
               <input type="checkbox" [(ngModel)]="form.is_published" name="is_published" />
               Yayında
             </label>
+
+            <label class="col-span-2 flex flex-col gap-1 text-sm">
+              Kurs Nerede Satılıyor?
+              <select class="rounded-md border border-slate-300 px-3 py-2" [(ngModel)]="form.provider" name="provider">
+                <option value="internal">Platformumuzda (YouTube ile)</option>
+                <option value="udemy">Udemy'de — burada yalnızca tanıtımını yapıyorum</option>
+              </select>
+            </label>
+            @if (form.provider === 'udemy') {
+              <label class="flex flex-col gap-1 text-sm">
+                Udemy Kurs Linki
+                <input
+                  class="rounded-md border border-slate-300 px-3 py-2"
+                  [(ngModel)]="form.external_url"
+                  name="external_url"
+                  placeholder="https://www.udemy.com/course/..."
+                />
+              </label>
+              <label class="flex flex-col gap-1 text-sm">
+                Kupon Kodu (opsiyonel)
+                <input
+                  class="rounded-md border border-slate-300 px-3 py-2"
+                  [(ngModel)]="form.coupon_code"
+                  name="coupon_code"
+                  placeholder="ör. BILIMDATA10"
+                />
+              </label>
+            }
 
             <div class="col-span-2 flex gap-3">
               <button

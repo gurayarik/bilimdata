@@ -243,6 +243,14 @@ Kullanıcı geri bildirimi: `/instructor/courses` ve `/instructor/lessons` sayfa
 - **`my-lessons.component.ts`:** Hero banner içine gömülü, beyaz arka planlı kurs seçici. Bölümler kart olarak, her ders satırında sıra numarası rozeti (dairesel), önizleme etiketi, kaynak dosyaları artık liste yerine küçük "chip" rozetleri. Bölüm/ders silme butonları kırmızı pill'e dönüştürüldü, "+ Ders Ekle"/"+ Bölüm Ekle" turuncu/kesikli-çerçeve vurgusuyla belirginleşti. Kurs seçilmeden önce davetkar bir boş durum ekranı eklendi.
 - Doğrulama: `npx ng build --configuration development` hatasız.
 
+## Eğitmenler de Udemy Kursu Tanıtabilir
+
+Kullanıcı isteği: eğitmenler kendi platformumuzda yayınladıkları kurslara ek olarak, Udemy'de sattıkları bir kursun tanıtımını da yapabilsin (link + kupon kodu ile) — önceden bu yalnızca admin panelinden mümkündü.
+
+- **`routers/instructor.py` — `create_my_course`:** Eğitmen kursu oluştururken `provider`/`external_url`/`coupon_code` alanlarını zorla `'internal'`/`None`/`None`'a sıfırlayan 3 satır kaldırıldı — artık admin ile aynı şekilde bu alanları kendisi belirleyebiliyor (`update_my_course` zaten bu kısıtlamayı hiç uygulamıyordu, tutarsızlık giderildi).
+- **`my-courses.component.ts`:** Forma admin'deki ile aynı desende "Kurs Nerede Satılıyor?" seçici (Platformumuzda / Udemy'de) + Udemy seçilince görünen link+kupon kodu alanları eklendi. Kart grid'inde Udemy kursları mor "🔗 Udemy" rozetiyle ve fiyat yerine kupon koduyla gösteriliyor.
+- Doğrulama: `npx ng build --configuration development` hatasız. (Canlı uçtan uca test edilmedi — mevcut seed instructor kayıtlarının hiçbiri gerçek bir kullanıcı profiline bağlı değil; kod yolu admin'in zaten kullandığı, test edilmiş mantıkla birebir aynı.)
+
 ## Commit Durumu
 
 Faz 8 + video-bitince-otomatik-ilerleme kodu tamamlandı, henüz commit edilmedi (bir sonraki adım commit).

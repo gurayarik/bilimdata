@@ -97,9 +97,6 @@ async def create_my_course(
     data = payload.model_dump()
     if instructor_id is not None:
         data["instructor_id"] = instructor_id
-        data["provider"] = "internal"
-        data["external_url"] = None
-        data["coupon_code"] = None
     result = supabase.table("courses").insert(data).execute()
     return _first_or_404(result, "Kurs oluşturulamadı")
 
