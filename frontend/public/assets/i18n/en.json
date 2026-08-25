@@ -16,7 +16,10 @@
     "title": "Shape Your Data Science and Software Career Today",
     "subtitle": "Get industry-ready with hands-on training from expert instructors.",
     "cta_explore": "Explore Programs",
-    "cta_deals": "Free Deals"
+    "cta_deals": "Free Deals",
+    "stat_courses": "Courses",
+    "stat_categories": "Categories",
+    "stat_instructors": "Instructors"
   },
   "categories": {
     "title": "Comprehensive Areas of Expertise",
@@ -30,7 +33,8 @@
     "item4": "Flexible, self-paced learning"
   },
   "courses_section": {
-    "title": "Featured Courses"
+    "title": "Featured Courses",
+    "view_all": "View All"
   },
   "advantages": {
     "title": "Student Advantages",

@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 import { Category } from '../../../core/models/category.model';
 import { Course } from '../../../core/models/course.model';
@@ -55,12 +56,14 @@ export class CourseListComponent implements OnInit {
   selectedCategoryId: string | null = null;
 
   constructor(
+    private readonly route: ActivatedRoute,
     private readonly categoryService: CategoryService,
     private readonly courseService: CourseService
   ) {}
 
   ngOnInit() {
     this.categoryService.list().subscribe((categories) => (this.categories = categories));
+    this.selectedCategoryId = this.route.snapshot.queryParamMap.get('category');
     this.loadCourses();
   }
 

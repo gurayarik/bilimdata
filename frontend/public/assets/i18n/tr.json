@@ -16,7 +16,10 @@
     "title": "Veri Bilimi ve Yazılım Kariyerinizi Bugün Şekillendirin",
     "subtitle": "Uzman eğitmenlerden alacağınız uygulamalı eğitimlerle sektöre hazır olun.",
     "cta_explore": "Programları Keşfet",
-    "cta_deals": "Ücretsiz Fırsatlar"
+    "cta_deals": "Ücretsiz Fırsatlar",
+    "stat_courses": "Eğitim",
+    "stat_categories": "Kategori",
+    "stat_instructors": "Eğitmen"
   },
   "categories": {
     "title": "Kapsamlı Uzmanlık Alanları",
@@ -30,7 +33,8 @@
     "item4": "Esnek, kendi hızınızda öğrenme"
   },
   "courses_section": {
-    "title": "Öne Çıkan Eğitimler"
+    "title": "Öne Çıkan Eğitimler",
+    "view_all": "Tümünü Gör"
   },
   "advantages": {
     "title": "Öğrenci Avantajları",

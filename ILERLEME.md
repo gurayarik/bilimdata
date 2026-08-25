@@ -267,6 +267,18 @@ Kullanıcı isteği (iki aşamalı): önce "kurslar yalnızca Udemy'de değil ba
 
 **Ek düzenleme:** Header'daki "Fırsatlar" nav linki (`fragment="advantages"`) artık genel "Öğrenci Avantajları" kart bölümüne değil, doğrudan yeni eklenen kurs bölümlerine (önce "Udemy Eğitimlerimiz", sonra "Eğitmenlerimizin Diğer Programları") kaydırıyor — `id="advantages"` sabit bir `<div>` çapası olarak bu iki `@if` bloğunun hemen üstüne taşındı (diziler boşken bile çapa her zaman DOM'da var olsun diye). Eski "Öğrenci Avantajları" bölümü içerik olarak aynı kaldı, yalnızca id'si çakışmasın diye `id="student-benefits"` oldu (başka hiçbir yerden referans edilmiyordu).
 
+## Ana Sayfa Yeniden Tasarımı
+
+Kullanıcı geri bildirimi: ana sayfa çok sade kalıyordu, daha profesyonel görünmeli.
+
+- **Hero:** Arka planda yumuşak, dekoratif blur daireler eklendi; başlık büyütüldü, üstte "BilimData" rozeti. Altına **gerçek verilerden hesaplanan** bir istatistik şeridi eklendi (uydurma sayı yok): toplam yayında kurs sayısı, kategori sayısı, `courses` verisinden `instructor.id`'ye göre `Set` ile hesaplanan benzersiz eğitmen sayısı.
+- **Kategori kartları:** Artık gerçekten tıklanabilir — `/courses?category={id}` linkine gidiyor (`course-list.component.ts`'ye `ActivatedRoute` üzerinden `?category=` query param okuma desteği eklendi, önceden bu filtre yalnızca sayfa içi buton tıklamasıyla çalışıyordu). İkon artık renkli dairesel rozet içinde, hover'da hafif yukarı kalkma + gölge efekti.
+- **"Neden Biz?" bölümü:** Düz onay işaretli liste yerine, her maddeye özel emoji ikonlu (👨‍🏫🛠️🎯⏱️) kart grid'i.
+- **"Öne Çıkan Eğitimler" başlığına** "Tümünü Gör →" linki eklendi.
+- **"Öğrenci Avantajları"** kartlarına da ikon eklendi (🎟️🖥️🗺️📞), hover gölgesiyle.
+- Yeni i18n anahtarları: `hero.stat_courses/stat_categories/stat_instructors`, `courses_section.view_all` (tr/en).
+- Doğrulama: `npx ng build --configuration development` hatasız.
+
 ## Commit Durumu
 
 Faz 8 + video-bitince-otomatik-ilerleme kodu tamamlandı, henüz commit edilmedi (bir sonraki adım commit).
