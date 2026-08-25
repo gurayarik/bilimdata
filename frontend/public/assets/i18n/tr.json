@@ -74,7 +74,23 @@
     "welcome": "Hoş geldin, {{name}}",
     "welcome_fallback": "kullanıcı",
     "sign_out": "Çıkış Yap",
-    "progress_placeholder": "İlerleme ve sertifikalar Faz 8'de doldurulacak."
+    "progress_placeholder": "Henüz kayıtlı bir eğitimin yok.",
+    "instructor_prompt": "Kendi eğitim içeriklerinizi platformumuzda yayınlamak ister misiniz?",
+    "become_instructor_cta": "Eğitmen Ol →",
+    "instructor_panel_cta": "Eğitmen Panelim →",
+    "stat_enrolled": "Kayıtlı Eğitim",
+    "stat_completed": "Tamamlanan",
+    "stat_avg_progress": "Ortalama İlerleme",
+    "stat_certificates": "Sertifika",
+    "completed_courses_title": "Tamamladığım Eğitimler",
+    "course_fallback": "Eğitim",
+    "certificate_short": "Sertifika",
+    "certificate_get": "Sertifika Al",
+    "certificate_view": "Sertifikayı Görüntüle",
+    "coach_show": "İlerleme Koçun",
+    "coach_hide": "Koçu Gizle",
+    "coach_loading": "Koçun değerlendirmeni hazırlıyor…",
+    "coach_label": "Eğitim Koçun Diyor Ki"
   },
   "course_detail": {
     "about": "Bu Eğitim Hakkında",
@@ -91,6 +107,14 @@
     "need_login": "Bu dersi izlemek için giriş yapmalısınız.",
     "need_enrollment": "Bu eğitime kayıtlı değilsiniz.",
     "back_to_course": "Kurs Sayfasına Dön"
+  },
+  "course_chat": {
+    "title": "Kurs Asistanı",
+    "subtitle": "Müfredat hakkında soru sor",
+    "empty_state": "Bu eğitimin müfredatı, kapsamı veya kime uygun olduğu hakkında soru sorabilirsin.",
+    "placeholder": "Bir soru yaz…",
+    "typing": "Yazıyor…",
+    "login_required": "Kurs asistanına soru sorabilmek için giriş yap."
   },
   "course_card": {
     "free": "Ücretsiz"

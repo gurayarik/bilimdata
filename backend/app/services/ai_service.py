@@ -39,10 +39,17 @@ async def generate_progress_coaching(
     completed_lessons: list[dict],
     remaining_titles: list[str],
     progress_percent: int,
+    reply_language: str = "tr",
 ) -> str:
     """Kullanıcının bir kurstaki ilerlemesine göre kişisel bir eğitim koçu
     gibi motive edici, video bazlı konu tekrarı içeren bir değerlendirme
-    üretir (Faz 8 dashboard). completed_lessons: [{"title": ..., "description": ...}]."""
+    üretir (Faz 8 dashboard). completed_lessons: [{"title": ..., "description": ...}].
+    reply_language: "tr" | "en" — kurs dili veya kullanıcının arayüz diline göre."""
+    language_instruction = (
+        "Write your entire response in English."
+        if reply_language == "en"
+        else "Yanıtının tamamını Türkçe yaz."
+    )
     completed_block = (
         "\n".join(
             f"- {lesson['title']}: {lesson['description'] or '(açıklama yok)'}"
@@ -77,7 +84,9 @@ metinle HTML'e başla):
 - En sonda <p><strong>...</strong></p> ile kısa, motive edici bir kapanış cümlesi
 
 Kalan ders yoksa (kurs tamamlandıysa) "Sırada Ne Var" yerine kursu bitirmiş olmanın
-kutlamasını yaz. Toplam yanıt 200 kelimeyi geçmesin."""
+kutlamasını yaz. Toplam yanıt 200 kelimeyi geçmesin.
+
+{language_instruction}"""
 
     async with httpx.AsyncClient(timeout=60) as client:
         response = await client.post(

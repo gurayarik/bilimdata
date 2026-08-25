@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
-import { TranslatePipe } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { Certificate } from '../../core/models/certificate.model';
 import { Enrollment } from '../../core/models/enrollment.model';
 import { CertificateService } from '../../core/services/certificate.service';
@@ -27,15 +27,15 @@ import { SupabaseService } from '../../core/services/supabase.service';
 
       @if (profile?.role === 'student') {
         <div class="mt-6 rounded-md border border-accent-500/40 bg-accent-500/10 px-4 py-3">
-          <p class="text-sm text-brand-900">Kendi eğitim içeriklerinizi platformumuzda yayınlamak ister misiniz?</p>
+          <p class="text-sm text-brand-900">{{ 'dashboard.instructor_prompt' | translate }}</p>
           <a routerLink="/become-instructor" class="mt-2 inline-block text-sm font-semibold text-brand-900 underline">
-            Eğitmen Ol →
+            {{ 'dashboard.become_instructor_cta' | translate }}
           </a>
         </div>
       } @else if (profile?.role === 'instructor') {
         <div class="mt-6 rounded-md border border-slate-200 px-4 py-3">
           <a routerLink="/instructor/courses" class="text-sm font-semibold text-brand-900 hover:underline">
-            Eğitmen Panelim →
+            {{ 'dashboard.instructor_panel_cta' | translate }}
           </a>
         </div>
       }
@@ -44,34 +44,34 @@ import { SupabaseService } from '../../core/services/supabase.service';
         <div class="mt-10 grid grid-cols-2 gap-3 sm:grid-cols-4">
           <div class="rounded-lg border border-slate-200 p-4 text-center">
             <p class="text-2xl font-bold text-brand-900">{{ activeEnrollments.length }}</p>
-            <p class="text-xs text-slate-500">Kayıtlı Eğitim</p>
+            <p class="text-xs text-slate-500">{{ 'dashboard.stat_enrolled' | translate }}</p>
           </div>
           <div class="rounded-lg border border-slate-200 p-4 text-center">
             <p class="text-2xl font-bold text-emerald-600">{{ completedCourses.length }}</p>
-            <p class="text-xs text-slate-500">Tamamlanan</p>
+            <p class="text-xs text-slate-500">{{ 'dashboard.stat_completed' | translate }}</p>
           </div>
           <div class="rounded-lg border border-slate-200 p-4 text-center">
             <p class="text-2xl font-bold text-accent-600">{{ averageProgress }}%</p>
-            <p class="text-xs text-slate-500">Ortalama İlerleme</p>
+            <p class="text-xs text-slate-500">{{ 'dashboard.stat_avg_progress' | translate }}</p>
           </div>
           <div class="rounded-lg border border-slate-200 p-4 text-center">
             <p class="text-2xl font-bold text-brand-900">{{ certificates.length }}</p>
-            <p class="text-xs text-slate-500">Sertifika</p>
+            <p class="text-xs text-slate-500">{{ 'dashboard.stat_certificates' | translate }}</p>
           </div>
         </div>
 
         @if (completedCourses.length) {
           <div class="mt-8">
-            <h2 class="text-lg font-bold text-brand-900">Tamamladığım Eğitimler</h2>
+            <h2 class="text-lg font-bold text-brand-900">{{ 'dashboard.completed_courses_title' | translate }}</h2>
             <div class="mt-3 flex flex-col gap-2">
               @for (enrollment of completedCourses; track enrollment.id) {
                 <div class="flex items-center justify-between rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3">
                   <span class="text-sm font-semibold text-brand-900">
-                    ✅ {{ enrollment.course?.title || 'Eğitim' }}
+                    ✅ {{ enrollment.course?.title || ('dashboard.course_fallback' | translate) }}
                   </span>
                   @if (certificateUrl(enrollment.course_id); as pdfUrl) {
                     <a [href]="pdfUrl" target="_blank" rel="noopener" class="text-sm font-semibold text-accent-600 underline">
-                      🎓 Sertifika
+                      🎓 {{ 'dashboard.certificate_short' | translate }}
                     </a>
                   } @else {
                     <button
@@ -79,7 +79,7 @@ import { SupabaseService } from '../../core/services/supabase.service';
                       class="text-sm font-semibold text-accent-600 underline"
                       (click)="issueCertificate(enrollment.course_id)"
                     >
-                      🎓 Sertifika Al
+                      🎓 {{ 'dashboard.certificate_get' | translate }}
                     </button>
                   }
                 </div>
@@ -89,7 +89,7 @@ import { SupabaseService } from '../../core/services/supabase.service';
         }
 
         <div class="mt-10">
-          <h2 class="text-lg font-bold text-brand-900">Eğitimlerim</h2>
+          <h2 class="text-lg font-bold text-brand-900">{{ 'dashboard.title' | translate }}</h2>
           <div class="mt-4 flex flex-col gap-3">
             @for (enrollment of activeEnrollments; track enrollment.id) {
               <div class="rounded-lg border border-slate-200 p-4">
@@ -98,7 +98,7 @@ import { SupabaseService } from '../../core/services/supabase.service';
                     [routerLink]="['/courses', enrollment.course?.slug]"
                     class="font-semibold text-brand-900 hover:underline"
                   >
-                    {{ enrollment.course?.title || 'Eğitim' }}
+                    {{ enrollment.course?.title || ('dashboard.course_fallback' | translate) }}
                   </a>
                   <span class="shrink-0 text-sm text-slate-500">%{{ enrollment.progress_percent }}</span>
                 </div>
@@ -113,7 +113,7 @@ import { SupabaseService } from '../../core/services/supabase.service';
                       rel="noopener"
                       class="text-sm font-semibold text-accent-600 underline"
                     >
-                      🎓 Sertifikayı Görüntüle
+                      🎓 {{ 'dashboard.certificate_view' | translate }}
                     </a>
                   } @else if (enrollment.progress_percent >= 100) {
                     <button
@@ -121,7 +121,7 @@ import { SupabaseService } from '../../core/services/supabase.service';
                       class="text-sm font-semibold text-accent-600 underline"
                       (click)="issueCertificate(enrollment.course_id)"
                     >
-                      🎓 Sertifika Al
+                      🎓 {{ 'dashboard.certificate_get' | translate }}
                     </button>
                   }
                   @if (enrollment.course?.slug) {
@@ -131,17 +131,17 @@ import { SupabaseService } from '../../core/services/supabase.service';
                       [disabled]="coachLoading[enrollment.course_id]"
                       (click)="toggleCoach(enrollment)"
                     >
-                      🤖 {{ coachOpen[enrollment.course_id] ? 'Koçu Gizle' : 'İlerleme Koçun' }}
+                      🤖 {{ (coachOpen[enrollment.course_id] ? 'dashboard.coach_hide' : 'dashboard.coach_show') | translate }}
                     </button>
                   }
                 </div>
 
                 @if (coachLoading[enrollment.course_id]) {
-                  <p class="mt-3 text-sm text-slate-500">Koçun değerlendirmeni hazırlıyor…</p>
+                  <p class="mt-3 text-sm text-slate-500">{{ 'dashboard.coach_loading' | translate }}</p>
                 } @else if (coachOpen[enrollment.course_id] && coachMessages[enrollment.course_id]) {
                   <div class="coach-message mt-3 rounded-md border border-accent-500/30 bg-accent-500/10 p-4">
                     <p class="mb-2 text-xs font-semibold uppercase tracking-wide text-accent-600">
-                      🎯 Eğitim Koçun Diyor Ki
+                      🎯 {{ 'dashboard.coach_label' | translate }}
                     </p>
                     <div class="rich-content text-sm text-slate-700" [innerHTML]="coachMessages[enrollment.course_id]"></div>
                   </div>
@@ -178,6 +178,7 @@ export class DashboardComponent implements OnInit {
     private readonly enrollmentService: EnrollmentService,
     private readonly certificateService: CertificateService,
     private readonly courseService: CourseService,
+    private readonly translate: TranslateService,
     private readonly router: Router
   ) {}
 
@@ -223,7 +224,7 @@ export class DashboardComponent implements OnInit {
     }
 
     this.coachLoading = { ...this.coachLoading, [courseId]: true };
-    this.courseService.getCoach(slug).subscribe({
+    this.courseService.getCoach(slug, this.translate.currentLang() || 'tr').subscribe({
       next: (result) => {
         this.coachLoading = { ...this.coachLoading, [courseId]: false };
         this.coachMessages = { ...this.coachMessages, [courseId]: result.message };

@@ -25,7 +25,7 @@ export class CourseService {
     return this.api.get<CourseProgress>(`/courses/${slug}/my-progress`);
   }
 
-  getCoach(slug: string) {
-    return this.api.get<{ message: string }>(`/courses/${slug}/coach`);
+  getCoach(slug: string, uiLanguage: string) {
+    return this.api.get<{ message: string }>(`/courses/${slug}/coach?ui_language=${uiLanguage}`);
   }
 }

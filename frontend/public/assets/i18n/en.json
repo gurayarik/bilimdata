@@ -74,7 +74,23 @@
     "welcome": "Welcome, {{name}}",
     "welcome_fallback": "user",
     "sign_out": "Sign Out",
-    "progress_placeholder": "Progress and certificates will be filled in Phase 8."
+    "progress_placeholder": "You're not enrolled in any course yet.",
+    "instructor_prompt": "Would you like to publish your own course content on our platform?",
+    "become_instructor_cta": "Become an Instructor →",
+    "instructor_panel_cta": "My Instructor Panel →",
+    "stat_enrolled": "Enrolled Courses",
+    "stat_completed": "Completed",
+    "stat_avg_progress": "Average Progress",
+    "stat_certificates": "Certificates",
+    "completed_courses_title": "Courses I've Completed",
+    "course_fallback": "Course",
+    "certificate_short": "Certificate",
+    "certificate_get": "Get Certificate",
+    "certificate_view": "View Certificate",
+    "coach_show": "Progress Coach",
+    "coach_hide": "Hide Coach",
+    "coach_loading": "Your coach is preparing your feedback…",
+    "coach_label": "Your Education Coach Says"
   },
   "course_detail": {
     "about": "About This Course",
@@ -91,6 +107,14 @@
     "need_login": "You need to log in to watch this lesson.",
     "need_enrollment": "You are not enrolled in this course.",
     "back_to_course": "Back to Course"
+  },
+  "course_chat": {
+    "title": "Course Assistant",
+    "subtitle": "Ask about the curriculum",
+    "empty_state": "You can ask about this course's curriculum, scope, or who it's for.",
+    "placeholder": "Ask a question…",
+    "typing": "Typing…",
+    "login_required": "Log in to ask the course assistant a question."
   },
   "course_card": {
     "free": "Free"

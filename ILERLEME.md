@@ -214,6 +214,15 @@ Kullanıcı isteği: kurs detay sayfasında (fiyat kartının altında), giriş 
 - **Frontend:** `core/models/chat.model.ts`, `core/services/chat.service.ts` (`ui_language`'ı `TranslateService.currentLang()`'den gönderiyor); `course-detail.component.ts`'ye fiyat kartının hemen altına modern bir sohbet widget'ı eklendi — gradyan başlıklı kart, rol bazlı avatarlar (🙂/🤖), kullanıcı balonu dolu accent renginde sağa hizalı, asistan balonu `[innerHTML]` + paylaşılan `.rich-content` sınıfıyla (HTML güvenli şekilde render ediliyor, markdown ham göstermiyor) sola hizalı, kalan hak göstergesi ("X/40"), giriş yapmamış kullanıcıya login CTA'sı.
 - Doğrulama: Gerçek kullanıcı/kurs verisiyle uçtan uca test edildi — müfredat sorularına doğru ve HTML biçimli yanıt, fiyat sorusuna doğru yanıt ("tamamen ücretsiz"), `ui_language: 'en'` ile İngilizce yanıt, günlük sayaç doğru artıyor/`remaining_messages` doğru dönüyor. `npx ng build --configuration development` hatasız.
 
+## i18n Boşlukları — Sohbet Widget'ı ve Dashboard
+
+Kullanıcı geri bildirimi: (1) dil İngilizce'ye çevrildiğinde kurs sohbet asistanının başlık/placeholder gibi sabit arayüz metinleri Türkçe kalıyordu, (2) `/dashboard` sayfası "yarı İngilizce yarı Türkçe" görünüyordu (Faz 8'de eklenen istatistik kartları, "Eğitimlerim" listesi, sertifika/koç butonları hiç i18n'e bağlanmamıştı — hardcoded Türkçe).
+
+- `public/assets/i18n/{tr,en}.json`'a yeni `course_chat` bölümü (title, subtitle, empty_state, placeholder, typing, login_required) ve `dashboard` bölümüne eksik anahtarlar eklendi (instructor_prompt, become_instructor_cta, instructor_panel_cta, stat_enrolled/completed/avg_progress/certificates, completed_courses_title, course_fallback, certificate_short/get/view, coach_show/hide/loading/label). `dashboard.progress_placeholder` metni de güncellendi (artık gerçek duruma uygun: "Henüz kayıtlı bir eğitimin yok.").
+- `course-detail.component.ts` ve `dashboard.component.ts`'deki tüm hardcoded Türkçe arayüz metinleri `| translate` pipe'ına bağlandı.
+- **AI içerikli metinlerin dili de düzeltildi:** Hem kurs sohbet asistanı hem de ilerleme koçu artık `ui_language` parametresi alıyor (`TranslateService.currentLang()`'den gönderiliyor) — kurs `language` alanı `'en'` **veya** kullanıcının seçili arayüz dili `'en'` ise yanıt İngilizce, aksi halde Türkçe üretiliyor (`generate_progress_coaching()` ve `chat_with_course_assistant()`'a `reply_language` parametresi eklendi, `GET /courses/{slug}/coach` artık `ui_language` query param'ı kabul ediyor).
+- Doğrulama: `ui_language=en` ile hem `/courses/{slug}/coach` hem `/courses/{slug}/chat` İngilizce, HTML biçimli yanıt döndürdüğü doğrulandı. `npx ng build --configuration development` hatasız.
+
 ## Commit Durumu
 
 Faz 8 + video-bitince-otomatik-ilerleme kodu tamamlandı, henüz commit edilmedi (bir sonraki adım commit).

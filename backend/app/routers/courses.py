@@ -104,15 +104,18 @@ async def get_my_course_progress(slug: str, user: CurrentUser = Depends(get_curr
 
 
 @router.get("/{slug}/coach")
-async def get_progress_coaching(slug: str, user: CurrentUser = Depends(get_current_user)):
+async def get_progress_coaching(
+    slug: str, ui_language: str | None = None, user: CurrentUser = Depends(get_current_user)
+):
     """Kullanıcının bu kurstaki ilerlemesine göre yapay zeka destekli,
     kişisel eğitim koçu tonunda bir değerlendirme üretir (Faz 8 dashboard)."""
     supabase = get_supabase()
-    course = supabase.table("courses").select("id, title").eq("slug", slug).execute()
+    course = supabase.table("courses").select("id, title, language").eq("slug", slug).execute()
     if not course.data:
         raise HTTPException(status_code=404, detail="Kurs bulunamadı")
     course_id = course.data[0]["id"]
     course_title = course.data[0]["title"]
+    reply_language = "en" if course.data[0].get("language") == "en" or ui_language == "en" else "tr"
 
     sections = (
         supabase.table("course_sections")
@@ -155,5 +158,7 @@ async def get_progress_coaching(slug: str, user: CurrentUser = Depends(get_curre
     )
     progress_percent = enrollment.data[0]["progress_percent"] if enrollment.data else 0
 
-    message = await generate_progress_coaching(course_title, completed_lessons, remaining_titles, progress_percent)
+    message = await generate_progress_coaching(
+        course_title, completed_lessons, remaining_titles, progress_percent, reply_language
+    )
     return {"message": message}

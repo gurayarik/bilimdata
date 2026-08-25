@@ -221,8 +221,8 @@ import { SupabaseService } from '../../../core/services/supabase.service';
                   🤖
                 </span>
                 <div class="min-w-0 flex-1">
-                  <p class="text-sm font-bold leading-tight">Kurs Asistanı</p>
-                  <p class="text-xs text-white/60">Müfredat hakkında soru sor</p>
+                  <p class="text-sm font-bold leading-tight">{{ 'course_chat.title' | translate }}</p>
+                  <p class="text-xs text-white/60">{{ 'course_chat.subtitle' | translate }}</p>
                 </div>
                 <span class="shrink-0 rounded-full bg-white/10 px-2 py-1 text-[11px] font-medium text-white/80">
                   {{ remainingMessages }}/40
@@ -234,7 +234,7 @@ import { SupabaseService } from '../../../core/services/supabase.service';
                   <div class="flex flex-col items-center gap-2 py-6 text-center">
                     <span class="text-3xl">💬</span>
                     <p class="max-w-[220px] text-xs text-slate-500">
-                      Bu eğitimin müfredatı, kapsamı veya kime uygun olduğu hakkında soru sorabilirsin.
+                      {{ 'course_chat.empty_state' | translate }}
                     </p>
                   </div>
                 }
@@ -264,7 +264,7 @@ import { SupabaseService } from '../../../core/services/supabase.service';
                       🤖
                     </span>
                     <span class="rounded-2xl rounded-bl-sm border border-slate-200 bg-white px-3.5 py-2 text-sm text-slate-400 shadow-sm">
-                      Yazıyor…
+                      {{ 'course_chat.typing' | translate }}
                     </span>
                   </div>
                 }
@@ -279,7 +279,7 @@ import { SupabaseService } from '../../../core/services/supabase.service';
                   class="flex-1 rounded-full border border-slate-300 px-4 py-2 text-sm focus:border-accent-500 focus:outline-none"
                   [(ngModel)]="chatInput"
                   name="chatInput"
-                  placeholder="Bir soru yaz…"
+                  [placeholder]="'course_chat.placeholder' | translate"
                   [disabled]="chatLoading || remainingMessages <= 0"
                 />
                 <button
@@ -296,8 +296,10 @@ import { SupabaseService } from '../../../core/services/supabase.service';
             <div class="mt-6 rounded-2xl border border-slate-200 bg-white p-5 text-center shadow-sm">
               <span class="text-2xl">💬</span>
               <p class="mt-2 text-sm text-slate-500">
-                Kurs asistanına soru sorabilmek için
-                <a routerLink="/auth/login" class="font-semibold text-brand-900 underline">giriş yap</a>.
+                {{ 'course_chat.login_required' | translate }}
+                <a routerLink="/auth/login" class="font-semibold text-brand-900 underline">{{
+                  'header.login' | translate
+                }}</a>
               </p>
             </div>
           }
