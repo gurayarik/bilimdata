@@ -19,7 +19,7 @@ async def summarize_post(content: str) -> str:
                 "content-type": "application/json",
             },
             json={
-                "model": "claude-sonnet-5",
+                "model": "claude-haiku-4-5-20251001",
                 "max_tokens": 300,
                 "messages": [
                     {
@@ -88,7 +88,7 @@ kutlamasını yaz. Toplam yanıt 200 kelimeyi geçmesin."""
                 "content-type": "application/json",
             },
             json={
-                "model": "claude-sonnet-5",
+                "model": "claude-haiku-4-5-20251001",
                 "max_tokens": 900,
                 "messages": [{"role": "user", "content": prompt}],
             },
@@ -130,7 +130,7 @@ Kurallar:
                 "content-type": "application/json",
             },
             json={
-                "model": "claude-sonnet-5",
+                "model": "claude-haiku-4-5-20251001",
                 "max_tokens": 2500,
                 "messages": [{"role": "user", "content": prompt}],
             },
