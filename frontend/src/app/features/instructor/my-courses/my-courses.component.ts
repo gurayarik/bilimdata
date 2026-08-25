@@ -74,7 +74,11 @@ function emptyForm(): CourseForm {
                 >
                   {{ course.is_published ? 'Yayında' : 'Taslak' }}
                 </span>
-                @if (course.provider === 'external') {
+                @if (course.provider === 'udemy') {
+                  <span class="absolute left-2 top-2 rounded-full bg-purple-600 px-2 py-0.5 text-xs font-semibold text-white shadow">
+                    🔗 Udemy
+                  </span>
+                } @else if (course.provider === 'external') {
                   <span class="absolute left-2 top-2 rounded-full bg-purple-600 px-2 py-0.5 text-xs font-semibold text-white shadow">
                     🔗 {{ course.platform_name || 'Harici' }}
                   </span>
@@ -82,9 +86,9 @@ function emptyForm(): CourseForm {
               </div>
               <div class="p-4">
                 <p class="font-semibold text-brand-900">{{ course.title }}</p>
-                @if (course.provider === 'external') {
+                @if (course.provider === 'udemy' || course.provider === 'external') {
                   <p class="mt-1 text-sm text-slate-500">
-                    {{ course.platform_name || 'Harici platform' }} üzerinden satılıyor
+                    {{ course.provider === 'udemy' ? 'Udemy' : course.platform_name || 'Harici platform' }} üzerinden satılıyor
                     @if (course.coupon_code) {
                       <span class="ml-1 rounded bg-slate-100 px-1.5 py-0.5 text-xs font-mono">{{ course.coupon_code }}</span>
                     }
@@ -207,19 +211,22 @@ function emptyForm(): CourseForm {
               Kurs Nerede Satılıyor?
               <select class="rounded-md border border-slate-300 px-3 py-2" [(ngModel)]="form.provider" name="provider">
                 <option value="internal">Platformumuzda (YouTube ile)</option>
+                <option value="udemy">Udemy'de — burada yalnızca tanıtımını yapıyorum</option>
                 <option value="external">Başka bir platformda — burada yalnızca tanıtımını yapıyorum</option>
               </select>
             </label>
-            @if (form.provider === 'external') {
-              <label class="flex flex-col gap-1 text-sm">
-                Platform Adı
-                <input
-                  class="rounded-md border border-slate-300 px-3 py-2"
-                  [(ngModel)]="form.platform_name"
-                  name="platform_name"
-                  placeholder="ör. Udemy, Coursera, Patreon"
-                />
-              </label>
+            @if (form.provider === 'udemy' || form.provider === 'external') {
+              @if (form.provider === 'external') {
+                <label class="flex flex-col gap-1 text-sm">
+                  Platform Adı
+                  <input
+                    class="rounded-md border border-slate-300 px-3 py-2"
+                    [(ngModel)]="form.platform_name"
+                    name="platform_name"
+                    placeholder="ör. Coursera, Patreon"
+                  />
+                </label>
+              }
               <label class="flex flex-col gap-1 text-sm">
                 Kurs Linki
                 <input

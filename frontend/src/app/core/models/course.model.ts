@@ -3,6 +3,7 @@ export interface Instructor {
   title: string | null;
   bio: string | null;
   avatar_url: string | null;
+  is_platform_official: boolean;
 }
 
 export interface Course {
@@ -19,7 +20,7 @@ export interface Course {
   level: string | null;
   language: string;
   instructor: Instructor | null;
-  provider: 'internal' | 'external';
+  provider: 'internal' | 'udemy' | 'external';
   platform_name: string | null;
   external_url: string | null;
   coupon_code: string | null;

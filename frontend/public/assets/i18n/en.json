@@ -123,9 +123,13 @@
     "free": "Free",
     "external": "External"
   },
+  "udemy_section": {
+    "title": "Our Udemy Courses",
+    "subtitle": "Check out our courses on Udemy with special coupon pricing."
+  },
   "external_section": {
-    "title": "Our Courses on Other Platforms",
-    "subtitle": "Check out our courses on partner platforms with special coupon pricing."
+    "title": "More Programs From Our Instructors",
+    "subtitle": "Check out programs our instructors offer on Udemy and other platforms."
   },
   "blog_page": {
     "title": "Blog",

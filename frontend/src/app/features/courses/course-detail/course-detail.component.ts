@@ -170,7 +170,7 @@ import { SupabaseService } from '../../../core/services/supabase.service';
               }
             </div>
 
-            @if (course.provider === 'external') {
+            @if (course.provider === 'udemy' || course.provider === 'external') {
               <a
                 [href]="course.external_url"
                 target="_blank"
@@ -179,7 +179,7 @@ import { SupabaseService } from '../../../core/services/supabase.service';
               >
                 {{
                   (isFree(course) ? 'course_detail.free_on_external' : 'course_detail.buy_on_external')
-                    | translate: { platform: course.platform_name || ('course_card.external' | translate) }
+                    | translate: { platform: externalPlatformLabel(course) }
                 }}
               </a>
               @if (course.coupon_code) {
@@ -400,6 +400,11 @@ export class CourseDetailComponent implements OnInit {
         ? course.discount_price
         : course.price;
     return effectivePrice === 0;
+  }
+
+  externalPlatformLabel(course: Course): string {
+    if (course.provider === 'udemy') return 'Udemy';
+    return course.platform_name || this.translate.instant('course_card.external');
   }
 
   enroll() {

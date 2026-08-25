@@ -7,7 +7,19 @@ from ..services.ai_service import generate_progress_coaching
 
 router = APIRouter(prefix="/courses", tags=["courses"])
 
-COURSE_SELECT = "*, instructor:instructors(id, title, bio, avatar_url)"
+COURSE_SELECT = "*, instructor:instructors(id, title, bio, avatar_url, profile_id)"
+
+
+def _mark_official_instructor(course: dict) -> dict:
+    """`instructors.profile_id` gerçek bir kullanıcı hesabına bağlı değilse
+    (None ise) bu, BilimData'nın kendi resmi eğitmen kimliğidir — kullanıcıların
+    kendi başvurup onaylanarak edindiği eğitmen hesaplarından ayırt etmek için
+    kullanılıyor (ör. "Udemy Eğitimlerimiz" bölümünde yalnızca bizim kendi
+    kurslarımızı göstermek için)."""
+    instructor = course.get("instructor")
+    if instructor:
+        instructor["is_platform_official"] = instructor.get("profile_id") is None
+    return course
 
 
 @router.get("", response_model=list[CourseOut])
@@ -17,7 +29,7 @@ async def list_courses(category_id: str | None = None):
     if category_id:
         query = query.eq("category_id", category_id)
     result = query.execute()
-    return result.data
+    return [_mark_official_instructor(course) for course in result.data]
 
 
 @router.get("/{slug}", response_model=CourseOut)
@@ -32,7 +44,7 @@ async def get_course(slug: str):
     )
     if not result.data:
         raise HTTPException(status_code=404, detail="Kurs bulunamadı")
-    return result.data[0]
+    return _mark_official_instructor(result.data[0])
 
 
 @router.get("/{slug}/curriculum", response_model=list[CurriculumSectionOut])

@@ -59,8 +59,9 @@ def _build_course_context(supabase, course_id: str, course: dict) -> str:
     else:
         price_line = f"Fiyatı {price} TL."
 
-    if course.get("provider") == "external":
-        platform = course.get("platform_name") or "harici bir platform"
+    provider = course.get("provider")
+    if provider in ("udemy", "external"):
+        platform = "Udemy" if provider == "udemy" else (course.get("platform_name") or "harici bir platform")
         price_line += f" Bu eğitim {platform} üzerinden satın alınıyor (platform dışı satış)."
         if course.get("coupon_code"):
             price_line += " Kupon kodu ile indirimli alınabilir."

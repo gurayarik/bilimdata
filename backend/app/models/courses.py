@@ -6,6 +6,7 @@ class InstructorOut(BaseModel):
     title: str | None = None
     bio: str | None = None
     avatar_url: str | None = None
+    is_platform_official: bool = False
 
 
 class CourseOut(BaseModel):

@@ -56,7 +56,15 @@ function emptyForm(): CourseForm {
           @for (course of courses; track course.id) {
             <tr class="border-b border-slate-100">
               <td class="py-2">{{ course.title }}</td>
-              <td>{{ course.provider === 'external' ? (course.platform_name || 'Harici') : 'Platform' }}</td>
+              <td>
+                @if (course.provider === 'internal') {
+                  Platform
+                } @else if (course.provider === 'udemy') {
+                  Udemy
+                } @else {
+                  {{ course.platform_name || 'Harici' }}
+                }
+              </td>
               <td>{{ course.discount_price ?? course.price }} ₺</td>
               <td>{{ course.is_published ? 'Evet' : 'Hayır' }}</td>
               <td class="flex gap-2 py-2 text-right">
@@ -172,21 +180,24 @@ function emptyForm(): CourseForm {
           Sağlayıcı
           <select class="rounded-md border border-slate-300 px-3 py-2" [(ngModel)]="form.provider" name="provider">
             <option value="internal">Platform (YouTube)</option>
-            <option value="external">Harici Platform (Udemy, Coursera, vb.)</option>
+            <option value="udemy">Udemy</option>
+            <option value="external">Başka Bir Platform</option>
           </select>
         </label>
-        @if (form.provider === 'external') {
+        @if (form.provider === 'udemy' || form.provider === 'external') {
+          @if (form.provider === 'external') {
+            <label class="flex flex-col gap-1 text-sm">
+              Platform Adı
+              <input
+                class="rounded-md border border-slate-300 px-3 py-2"
+                [(ngModel)]="form.platform_name"
+                name="platform_name"
+                placeholder="ör. Coursera, Patreon"
+              />
+            </label>
+          }
           <label class="flex flex-col gap-1 text-sm">
-            Platform Adı
-            <input
-              class="rounded-md border border-slate-300 px-3 py-2"
-              [(ngModel)]="form.platform_name"
-              name="platform_name"
-              placeholder="ör. Udemy, Coursera"
-            />
-          </label>
-          <label class="flex flex-col gap-1 text-sm">
-            Platform Linki
+            {{ form.provider === 'udemy' ? 'Udemy Linki' : 'Platform Linki' }}
             <input
               class="rounded-md border border-slate-300 px-3 py-2"
               [(ngModel)]="form.external_url"

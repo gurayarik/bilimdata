@@ -12,7 +12,7 @@ export interface AdminCourse {
   level: string | null;
   language: string;
   is_published: boolean;
-  provider: 'internal' | 'external';
+  provider: 'internal' | 'udemy' | 'external';
   platform_name: string | null;
   external_url: string | null;
   coupon_code: string | null;

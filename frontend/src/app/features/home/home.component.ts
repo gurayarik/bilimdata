@@ -67,7 +67,23 @@ import { CtaButtonComponent } from '../../shared/components/cta-button/cta-butto
       </div>
     </section>
 
-    @if (externalCourses.length) {
+    @if (udemyCourses.length) {
+      <section class="mx-auto max-w-6xl px-4 py-16">
+        <h2 class="text-center text-2xl font-bold text-brand-900">
+          {{ 'udemy_section.title' | translate }}
+        </h2>
+        <p class="mx-auto mt-2 max-w-xl text-center text-slate-600">
+          {{ 'udemy_section.subtitle' | translate }}
+        </p>
+        <div class="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-4">
+          @for (course of udemyCourses; track course.id) {
+            <app-course-card [course]="course" />
+          }
+        </div>
+      </section>
+    }
+
+    @if (instructorExternalCourses.length) {
       <section class="mx-auto max-w-6xl px-4 py-16">
         <h2 class="text-center text-2xl font-bold text-brand-900">
           {{ 'external_section.title' | translate }}
@@ -76,7 +92,7 @@ import { CtaButtonComponent } from '../../shared/components/cta-button/cta-butto
           {{ 'external_section.subtitle' | translate }}
         </p>
         <div class="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-4">
-          @for (course of externalCourses; track course.id) {
+          @for (course of instructorExternalCourses; track course.id) {
             <app-course-card [course]="course" />
           }
         </div>
@@ -103,7 +119,8 @@ import { CtaButtonComponent } from '../../shared/components/cta-button/cta-butto
 export class HomeComponent implements OnInit {
   categories: Category[] = [];
   courses: Course[] = [];
-  externalCourses: Course[] = [];
+  udemyCourses: Course[] = [];
+  instructorExternalCourses: Course[] = [];
   readonly advantageKeys = ['coupons', 'portal', 'roadmaps', 'contact'];
 
   constructor(
@@ -115,7 +132,12 @@ export class HomeComponent implements OnInit {
     this.categoryService.list().subscribe((categories) => (this.categories = categories));
     this.courseService.list().subscribe((courses) => {
       this.courses = courses.filter((c) => c.provider === 'internal').slice(0, 4);
-      this.externalCourses = courses.filter((c) => c.provider === 'external');
+      this.udemyCourses = courses.filter(
+        (c) => c.provider === 'udemy' && c.instructor?.is_platform_official !== false
+      );
+      this.instructorExternalCourses = courses.filter(
+        (c) => (c.provider === 'udemy' || c.provider === 'external') && c.instructor?.is_platform_official === false
+      );
     });
   }
 }

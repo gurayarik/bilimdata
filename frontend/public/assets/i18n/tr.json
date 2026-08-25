@@ -123,9 +123,13 @@
     "free": "Ücretsiz",
     "external": "Harici"
   },
+  "udemy_section": {
+    "title": "Udemy Eğitimlerimiz",
+    "subtitle": "Kupon kodlu özel fiyatlarla Udemy üzerindeki eğitimlerimize göz atın."
+  },
   "external_section": {
-    "title": "Diğer Platformlardaki Eğitimlerimiz",
-    "subtitle": "Kupon kodlu özel fiyatlarla ortak platformlardaki eğitimlerimize göz atın."
+    "title": "Eğitmenlerimizin Diğer Programları",
+    "subtitle": "Eğitmenlerimizin Udemy ve diğer platformlarda sunduğu programlara göz atın."
   },
   "blog_page": {
     "title": "Blog",
