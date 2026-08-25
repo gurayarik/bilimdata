@@ -1,4 +1,5 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 import { TranslatePipe } from '@ngx-translate/core';
@@ -41,9 +42,16 @@ function loadYouTubeApi(): Promise<void> {
   template: `
     <section class="mx-auto grid max-w-6xl grid-cols-1 gap-6 px-4 py-8 md:grid-cols-3">
       <div class="md:col-span-2">
-        @if (youtubeVideoId) {
+        @if (videoUrl) {
           <div class="aspect-video w-full overflow-hidden rounded-lg bg-black">
-            <div id="yt-player" class="h-full w-full"></div>
+            <iframe
+              id="yt-player"
+              [src]="videoUrl"
+              class="h-full w-full"
+              title="lesson video"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowfullscreen
+            ></iframe>
           </div>
           <h1 class="mt-4 text-xl font-bold text-brand-900">{{ lessonTitle }}</h1>
           @if (lessonDescription) {
@@ -86,7 +94,7 @@ function loadYouTubeApi(): Promise<void> {
         <h2 class="font-semibold text-brand-900">{{ 'course_detail.curriculum' | translate }}</h2>
         <div class="mt-2 flex items-center gap-2 text-sm text-slate-500">
           <div class="h-2 flex-1 overflow-hidden rounded-full bg-slate-100">
-            <div class="h-full bg-accent-500" [style.width.%]="progressPercent"></div>
+            <div class="h-full bg-accent-500 transition-all" [style.width.%]="progressPercent"></div>
           </div>
           <span>%{{ progressPercent }}</span>
         </div>
@@ -96,12 +104,16 @@ function loadYouTubeApi(): Promise<void> {
               <ul>
                 @for (lesson of section.lessons; track lesson.id) {
                   <li
-                    class="border-b border-slate-100 px-3 py-2 text-sm last:border-b-0"
-                    [class.bg-slate-50]="lesson.id === lessonId"
+                    class="border-b border-l-4 border-slate-100 px-3 py-2 text-sm last:border-b-0"
+                    [class]="lesson.id === lessonId ? 'border-l-accent-500 bg-accent-500/10' : 'border-l-transparent'"
                   >
                     <a [routerLink]="['/courses', slug, 'lessons', lesson.id]" class="text-brand-900">
-                      {{ completedLessonIds.has(lesson.id) ? '✅' : lesson.is_preview ? '▶' : '🔒' }}
-                      {{ lesson.title }}
+                      <span [class.font-semibold]="lesson.id === lessonId">
+                        {{ lessonIcon(lesson) }} {{ lesson.title }}
+                      </span>
+                      @if (lesson.id === lessonId) {
+                        <span class="ml-1 text-xs font-semibold text-accent-600">(şu an izliyorsun)</span>
+                      }
                     </a>
                   </li>
                 }
@@ -118,7 +130,7 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
   lessonId = '';
   lessonTitle = '';
   lessonDescription: string | null = null;
-  youtubeVideoId: string | null = null;
+  videoUrl: SafeResourceUrl | null = null;
   accessError: 401 | 403 | null = null;
   sections: CurriculumSection[] = [];
   progressPercent = 0;
@@ -132,7 +144,8 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
     private readonly route: ActivatedRoute,
     private readonly router: Router,
     private readonly courseService: CourseService,
-    private readonly lessonService: LessonService
+    private readonly lessonService: LessonService,
+    private readonly sanitizer: DomSanitizer
   ) {}
 
   ngOnInit() {
@@ -148,6 +161,12 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.destroyPlayer();
+  }
+
+  lessonIcon(lesson: CurriculumLesson): string {
+    if (this.completedLessonIds.has(lesson.id)) return '✅';
+    if (lesson.id === this.lessonId) return '▶';
+    return lesson.is_preview ? '▶' : '🔒';
   }
 
   private loadProgress() {
@@ -175,16 +194,21 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
 
   private loadLesson() {
     this.destroyPlayer();
-    this.youtubeVideoId = null;
+    this.videoUrl = null;
     this.accessError = null;
     this.lessonService.getById(this.lessonId).subscribe({
       next: (lesson) => {
         this.lessonTitle = lesson.title;
         this.lessonDescription = lesson.description;
         if (lesson.youtube_video_id) {
-          this.youtubeVideoId = lesson.youtube_video_id;
+          const origin = encodeURIComponent(window.location.origin);
+          this.videoUrl = this.sanitizer.bypassSecurityTrustResourceUrl(
+            `https://www.youtube.com/embed/${lesson.youtube_video_id}?rel=0&modestbranding=1&enablejsapi=1&origin=${origin}`
+          );
           const requestedLessonId = this.lessonId;
-          setTimeout(() => this.initPlayer(requestedLessonId, lesson.youtube_video_id!), 0);
+          // İframe DOM'a yazıldıktan sonra JS API'yi ona bağlıyoruz; API
+          // yüklenemese/gecikse bile video zaten düz iframe olarak görünür.
+          setTimeout(() => this.attachPlayerApi(requestedLessonId), 0);
         }
       },
       error: (err: HttpErrorResponse) => {
@@ -193,16 +217,12 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
     });
   }
 
-  private initPlayer(requestedLessonId: string, videoId: string) {
+  private attachPlayerApi(requestedLessonId: string) {
     loadYouTubeApi().then(() => {
       // Kullanıcı yüklenme bitmeden başka bir derse geçmiş olabilir.
       if (this.lessonId !== requestedLessonId) return;
       this.destroyPlayer();
       this.ytPlayer = new window.YT.Player('yt-player', {
-        videoId,
-        width: '100%',
-        height: '100%',
-        playerVars: { rel: 0, modestbranding: 1 },
         events: {
           onStateChange: (event: any) => {
             if (event.data === window.YT.PlayerState.ENDED) {
@@ -216,7 +236,11 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
 
   private destroyPlayer() {
     if (this.ytPlayer) {
-      this.ytPlayer.destroy();
+      try {
+        this.ytPlayer.destroy();
+      } catch {
+        // iframe zaten kaldırılmış olabilir.
+      }
       this.ytPlayer = null;
     }
   }
