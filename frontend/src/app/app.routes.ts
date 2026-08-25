@@ -20,6 +20,20 @@ export const routes: Routes = [
     loadComponent: () => import('./features/deals/deals.component').then((m) => m.DealsComponent),
   },
   {
+    path: 'contact',
+    loadComponent: () =>
+      import('./features/contact/contact.component').then((m) => m.ContactComponent),
+  },
+  {
+    path: 'privacy',
+    loadComponent: () =>
+      import('./features/legal/privacy/privacy.component').then((m) => m.PrivacyComponent),
+  },
+  {
+    path: 'terms',
+    loadComponent: () => import('./features/legal/terms/terms.component').then((m) => m.TermsComponent),
+  },
+  {
     path: 'courses/:slug/lessons/:lessonId',
     loadComponent: () =>
       import('./features/courses/course-player/course-player.component').then(

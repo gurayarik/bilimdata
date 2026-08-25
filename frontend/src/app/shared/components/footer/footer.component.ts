@@ -1,10 +1,11 @@
 import { Component } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-footer',
   standalone: true,
-  imports: [TranslatePipe],
+  imports: [RouterLink, TranslatePipe],
   template: `
     <footer id="footer" class="bg-brand-900 text-white/80">
       <div
@@ -12,8 +13,8 @@ import { TranslatePipe } from '@ngx-translate/core';
       >
         <p>{{ 'footer.copyright' | translate }}</p>
         <div class="flex gap-4">
-          <a href="#" class="hover:text-accent-500">{{ 'footer.privacy' | translate }}</a>
-          <a href="#" class="hover:text-accent-500">{{ 'footer.terms' | translate }}</a>
+          <a routerLink="/privacy" class="hover:text-accent-500">{{ 'footer.privacy' | translate }}</a>
+          <a routerLink="/terms" class="hover:text-accent-500">{{ 'footer.terms' | translate }}</a>
         </div>
       </div>
     </footer>
