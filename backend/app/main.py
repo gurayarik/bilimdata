@@ -8,6 +8,7 @@ from .routers import (
     blog,
     categories,
     certificates,
+    contact,
     coupons,
     course_chat,
     courses,
@@ -45,6 +46,7 @@ app.include_router(instructor_applications.router)
 app.include_router(instructor.router)
 app.include_router(quizzes.router)
 app.include_router(course_chat.router)
+app.include_router(contact.router)
 
 
 @app.get("/health")

@@ -68,3 +68,16 @@ export interface AdminEnrollment {
   course: { title: string } | null;
   user: { full_name: string | null } | null;
 }
+
+export interface AdminContactMessage {
+  id: string;
+  user_id: string | null;
+  name: string;
+  email: string;
+  subject: string | null;
+  message: string;
+  status: 'new' | 'answered';
+  admin_reply: string | null;
+  replied_at: string | null;
+  created_at: string;
+}

@@ -52,6 +52,20 @@
     "privacy": "Privacy Policy",
     "terms": "Terms of Use"
   },
+  "contact_page": {
+    "title": "Contact Us",
+    "subtitle": "Have a question, suggestion, or complaint? Reach us using the form below.",
+    "name": "Full Name",
+    "email": "Email",
+    "subject": "Subject",
+    "subject_placeholder": "e.g. Payment issue, course suggestion, complaint...",
+    "message": "Your Message",
+    "send": "Send",
+    "send_another": "Send Another Message",
+    "success_title": "Message received!",
+    "success_body": "Our team will review it and get back to you as soon as possible.",
+    "error": "Something went wrong while sending your message, please try again."
+  },
   "courses_page": {
     "title": "Course Catalog",
     "all_categories": "All Categories",

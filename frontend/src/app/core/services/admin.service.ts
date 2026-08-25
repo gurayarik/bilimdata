@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { BlogPost } from '../models/blog.model';
 import {
+  AdminContactMessage,
   AdminCourse,
   AdminEnrollment,
   AdminInstructor,
@@ -98,5 +99,14 @@ export class AdminService {
   }
   rejectInstructorApplication(id: string) {
     return this.api.put(`/admin/instructor-applications/${id}/reject`, {});
+  }
+
+  // İletişim mesajları
+  listContactMessages(statusFilter?: 'new' | 'answered') {
+    const query = statusFilter ? `?status_filter=${statusFilter}` : '';
+    return this.api.get<AdminContactMessage[]>(`/admin/contact-messages${query}`);
+  }
+  replyContactMessage(id: string, reply: string) {
+    return this.api.put<AdminContactMessage>(`/admin/contact-messages/${id}/reply`, { reply });
   }
 }

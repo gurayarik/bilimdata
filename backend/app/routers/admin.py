@@ -14,6 +14,7 @@ from ..models.admin import (
     AdminSectionCreate,
     AdminSectionUpdate,
 )
+from ..models.contact import ContactReplyIn
 from ..services.storage_service import delete_lesson_resource, upload_lesson_resource
 
 router = APIRouter(prefix="/admin", tags=["admin"], dependencies=[Depends(require_admin)])
@@ -299,3 +300,38 @@ async def reject_instructor_application(application_id: str):
         .execute()
     )
     return _first_or_404(result, "Başvuru bulunamadı")
+
+
+# --- İletişim mesajları -------------------------------------------------------
+
+
+@router.get("/contact-messages")
+async def list_contact_messages(status_filter: str | None = None):
+    """status_filter verilmezse tüm mesajlar (en yeni önce) döner."""
+    supabase = get_supabase()
+    query = supabase.table("contact_messages").select("*").order("created_at", desc=True)
+    if status_filter:
+        query = query.eq("status", status_filter)
+    result = query.execute()
+    return result.data
+
+
+@router.put("/contact-messages/{message_id}/reply")
+async def reply_contact_message(message_id: str, payload: ContactReplyIn):
+    """Yanıt yalnızca sistemde kaydedilir; kullanıcıya e-posta gönderimi
+    yapılmaz — admin, mesajdaki e-posta adresi üzerinden kullanıcıya ayrıca
+    dönüş yapmalıdır."""
+    supabase = get_supabase()
+    result = (
+        supabase.table("contact_messages")
+        .update(
+            {
+                "admin_reply": payload.reply,
+                "status": "answered",
+                "replied_at": datetime.now(timezone.utc).isoformat(),
+            }
+        )
+        .eq("id", message_id)
+        .execute()
+    )
+    return _first_or_404(result, "Mesaj bulunamadı")

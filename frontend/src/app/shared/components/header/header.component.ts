@@ -23,9 +23,7 @@ import { LogoComponent } from '../logo/logo.component';
             'nav.instructors' | translate
           }}</a>
           <a routerLink="/deals" class="hover:text-accent-500">{{ 'nav.deals' | translate }}</a>
-          <a routerLink="/" fragment="footer" class="hover:text-accent-500">{{
-            'nav.contact' | translate
-          }}</a>
+          <a routerLink="/contact" class="hover:text-accent-500">{{ 'nav.contact' | translate }}</a>
         </nav>
 
         <div class="flex items-center gap-3">

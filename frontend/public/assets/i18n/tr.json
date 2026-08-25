@@ -52,6 +52,20 @@
     "privacy": "Gizlilik Politikası",
     "terms": "Kullanım Koşulları"
   },
+  "contact_page": {
+    "title": "İletişim",
+    "subtitle": "Sorularınız, önerileriniz veya şikayetleriniz için bize aşağıdaki formdan ulaşabilirsiniz.",
+    "name": "Ad Soyad",
+    "email": "E-posta",
+    "subject": "Konu",
+    "subject_placeholder": "ör. Ödeme sorunu, kurs önerisi, şikayet...",
+    "message": "Mesajınız",
+    "send": "Gönder",
+    "send_another": "Yeni Mesaj Gönder",
+    "success_title": "Mesajınız alındı!",
+    "success_body": "En kısa sürede ekibimiz tarafından incelenip size dönüş yapılacaktır.",
+    "error": "Mesajınız gönderilirken bir hata oluştu, lütfen tekrar deneyin."
+  },
   "courses_page": {
     "title": "Eğitim Kataloğu",
     "all_categories": "Tüm Kategoriler",
