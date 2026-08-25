@@ -17,6 +17,7 @@ import { LanguageSwitcherComponent } from '../language-switcher/language-switche
 
         <nav class="hidden items-center gap-6 text-sm md:flex">
           <a routerLink="/courses" class="hover:text-accent-500">{{ 'nav.programs' | translate }}</a>
+          <a routerLink="/blog" class="hover:text-accent-500">{{ 'nav.blog' | translate }}</a>
           <a routerLink="/" fragment="why-us" class="hover:text-accent-500">{{
             'nav.instructors' | translate
           }}</a>

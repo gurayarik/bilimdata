@@ -6,6 +6,7 @@
   },
   "nav": {
     "programs": "Programs",
+    "blog": "Blog",
     "instructors": "Our Experts",
     "deals": "Deals",
     "contact": "Contact",
@@ -97,5 +98,23 @@
   "udemy_section": {
     "title": "Our Udemy Courses",
     "subtitle": "Check out our courses on Udemy with special coupon pricing."
+  },
+  "blog_page": {
+    "title": "Blog",
+    "empty": "No posts published yet.",
+    "not_found": "Post not found.",
+    "ai_summary": "AI Summary",
+    "comments_title": "Comments",
+    "comment_placeholder": "Write your comment...",
+    "comment_submit": "Post Comment",
+    "comment_login_required": "You need to log in to comment.",
+    "write_link": "Write a Post",
+    "write_title": "Write a Blog Post",
+    "write_info": "After submitting, your post will go to admin review and be published once approved.",
+    "write_submit": "Submit",
+    "write_success": "Your post was submitted! It will be published after admin approval.",
+    "my_posts_title": "My Posts",
+    "status_published": "Published",
+    "status_pending": "Pending Review"
   }
 }

@@ -7,7 +7,7 @@ ANTHROPIC_API_URL = "https://api.anthropic.com/v1/messages"
 
 async def summarize_post(content: str) -> str:
     """Blog yazısının özetini Claude ile üretir (Faz 7)."""
-    async with httpx.AsyncClient() as client:
+    async with httpx.AsyncClient(timeout=60) as client:
         response = await client.post(
             ANTHROPIC_API_URL,
             headers={

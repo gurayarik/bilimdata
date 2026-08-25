@@ -152,7 +152,12 @@ async def delete_lesson_resource_admin(lesson_id: str, index: int):
 @router.get("/blog")
 async def list_blog_posts():
     supabase = get_supabase()
-    result = supabase.table("blog_posts").select("*").order("created_at").execute()
+    result = (
+        supabase.table("blog_posts")
+        .select("*, author:profiles(full_name)")
+        .order("created_at", desc=True)
+        .execute()
+    )
     return result.data
 
 

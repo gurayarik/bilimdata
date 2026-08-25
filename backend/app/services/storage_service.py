@@ -5,6 +5,7 @@ from fastapi import UploadFile
 from ..core.supabase_client import get_supabase
 
 LESSON_RESOURCES_BUCKET = "lesson-resources"
+BLOG_IMAGES_BUCKET = "blog-images"
 
 _SLIDE_EXTENSIONS = {".ppt", ".pptx", ".key", ".odp"}
 
@@ -41,6 +42,22 @@ async def upload_lesson_resource(file: UploadFile, lesson_id: str) -> dict:
     supabase.table("lessons").update({"resources": updated}).eq("id", lesson_id).execute()
 
     return resource
+
+
+async def upload_blog_image(file: UploadFile, user_id: str) -> str:
+    """Blog kapak görseli veya içerik görseli yükler, public URL döner."""
+    supabase = get_supabase()
+
+    content = await file.read()
+    filename = file.filename or "gorsel"
+    storage_path = f"{user_id}/{uuid.uuid4().hex}-{filename}"
+
+    supabase.storage.from_(BLOG_IMAGES_BUCKET).upload(
+        storage_path,
+        content,
+        {"content-type": file.content_type or "application/octet-stream"},
+    )
+    return supabase.storage.from_(BLOG_IMAGES_BUCKET).get_public_url(storage_path)
 
 
 def delete_lesson_resource(lesson_id: str, index: int) -> list[dict]:

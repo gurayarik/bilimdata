@@ -35,6 +35,12 @@ export const routes: Routes = [
       import('./features/blog/blog-list/blog-list.component').then((m) => m.BlogListComponent),
   },
   {
+    path: 'blog/write',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./features/blog/write/write.component').then((m) => m.BlogWriteComponent),
+  },
+  {
     path: 'blog/:slug',
     loadComponent: () =>
       import('./features/blog/blog-detail/blog-detail.component').then(

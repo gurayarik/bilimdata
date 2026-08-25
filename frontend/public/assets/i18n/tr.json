@@ -6,6 +6,7 @@
   },
   "nav": {
     "programs": "Programlar",
+    "blog": "Blog",
     "instructors": "Uzman Kadro",
     "deals": "Fırsatlar",
     "contact": "İletişim",
@@ -97,5 +98,23 @@
   "udemy_section": {
     "title": "Udemy Eğitimlerimiz",
     "subtitle": "Kupon kodlu özel fiyatlarla Udemy üzerindeki eğitimlerimize göz atın."
+  },
+  "blog_page": {
+    "title": "Blog",
+    "empty": "Henüz yayınlanmış bir yazı yok.",
+    "not_found": "Yazı bulunamadı.",
+    "ai_summary": "Yapay Zeka Özeti",
+    "comments_title": "Yorumlar",
+    "comment_placeholder": "Yorumunuzu yazın...",
+    "comment_submit": "Yorum Yap",
+    "comment_login_required": "Yorum yapmak için giriş yapmalısınız.",
+    "write_link": "Yazı Yaz",
+    "write_title": "Blog Yazısı Yaz",
+    "write_info": "Yazınız gönderildikten sonra admin onayına düşecek, onaylandığında herkese açık olarak yayınlanacaktır.",
+    "write_submit": "Gönder",
+    "write_success": "Yazınız gönderildi! Admin onayından sonra yayınlanacaktır.",
+    "my_posts_title": "Yazılarım",
+    "status_published": "Yayında",
+    "status_pending": "Onay Bekliyor"
   }
 }

@@ -90,25 +90,54 @@ CLAUDE.md v1'de "çoklu eğitmen marketplace modeli yok" diyordu; kullanıcı bi
 - **Düzeltilen bug:** `instructor_applications` tablosunun `profiles`'a iki farklı FK'si olduğu için (`user_id`, `reviewed_by`) PostgREST embed sorgusu belirsizlik hatası veriyordu; `profiles!instructor_applications_user_id_fkey` ile FK adı açıkça belirtilerek çözüldü.
 - Uçtan uca test edildi: başvuru → admin onayı → rol değişimi → kendi kurs oluşturma → başka eğitmenin erişememesi (403) → PDF yükleyip `lessons.resources`'a kalıcı olarak eklenmesi.
 
+## Faz 6 — Blog Modülü ✅
+
+- `blog.service.ts` + `blog-list`/`blog-detail` sayfaları placeholder'dan gerçek içeriğe geçirildi (kart grid, kapak görseli, kategori/etiket, tarih, tam içerik).
+- Header'a "Blog" nav linki eklendi.
+- Kullanıcı isteğiyle 3 gerçek, detaylı blog yazısı yazılıp yayınlandı (samimi/mentor tonunda, veri bilimi temalı): "Veri Bilimciliğe Nasıl Başlanır?", "Pandas mı NumPy mı?", "Makine Öğrenmesi Projelerinde Sık Yapılan 7 Hata".
+
+## Faz 7 — AI Özetleme ✅
+
+- `POST /blog/{id}/summarize` (Faz 0'dan beri var olan iskelet) uçtan uca test edildi ve 3 mevcut yazı için gerçekten çalıştırılıp `ai_summary` alanları dolduruldu.
+- **Düzeltme:** `ai_service.py`'de `httpx.AsyncClient()` varsayılan timeout'u (5sn) Claude çağrıları için yetersizdi (`ReadTimeout`); `timeout=60` eklendi.
+- Frontend `blog-detail`'de AI özeti, vurgulu bir kutuda gösteriliyor.
+- Admin blog-editor'a "AI ile Özetle" butonu eklendi (`admin.service.ts: summarizeBlogPost`).
+
+## Blog Etkileşimi (Yorum/Beğeni) + Kullanıcı Blog Yazıları ✅ (plan dışı ek)
+
+Kullanıcı kararı: blog yazıları interaktif olsun (yorum + beğeni) ve **giriş yapmış herhangi bir kullanıcı** kendi yazısını gönderebilsin — ama **admin onayından geçmeden yayınlanmasın** (spam/kalite kontrolü).
+
+- **Şema (`0013_blog_comments_likes.sql`):** `blog_comments`, `blog_likes` (`unique(post_id,user_id)` ile toggle-uyumlu) — RLS ile herkes okuyabilir, kullanıcı yalnızca kendi kaydını ekleyip silebilir.
+- **Backend (`routers/blog.py` genişletmesi):** `GET/POST /blog/{post_id}/comments`, `DELETE /blog/comments/{id}` (kendi yorumu veya admin), `GET /blog/{post_id}/likes` (`{count, liked_by_me}`), `POST /blog/{post_id}/like` (toggle), `GET/POST /blog/my-posts` (kullanıcı kendi yazısını **her zaman `is_published=false`, `author_id=kendisi`** ile gönderir — payload'da ne gelirse gelsin bu iki alan zorlanıyor). `admin.py`'deki `list_blog_posts`'a yazar adı join'i eklendi.
+- **Frontend:** `blog-detail`'de kalp ikonlu beğeni butonu (giriş yoksa login'e yönlendirir) + yorum listesi/formu; yeni `/blog/write` sayfası (form + "yazılarım" durum listesi); `blog-list`'te giriş yapmışsa "Yazı Yaz" linki; admin blog-editor'da yazar sütunu + "Taslak/Onay Bekliyor" rozeti.
+- Uçtan uca test edildi: yorum ekle/sil (admin başkasının yorumunu silebiliyor), beğeni aç/kapa toggle, kullanıcı yazısı gönder → genel listede görünmüyor → admin onaylar → genel listede beliriyor.
+
+## `/blog/write` Sayfası Yeniden Tasarımı ✅ (plan dışı ek)
+
+Kullanıcı isteğiyle yazı gönderme deneyimi zenginleştirildi: kapak görseli yükleme, video linki paylaşma, ve zengin metin editörü.
+
+- **Şema (`0014_blog_video_and_images.sql`):** `blog_posts.video_url` kolonu + `blog-images` Storage bucket'ı.
+- **Backend:** `storage_service.py`'ye `upload_blog_image()` eklendi; `POST /blog/upload-image` (giriş gerektirir) endpoint'i; `UserBlogPostCreate`/`AdminBlogPostCreate`/`AdminBlogPostUpdate` modellerine `video_url` eklendi.
+- **Frontend:** Harici kütüphane eklemeden, native `contenteditable` + `document.execCommand` tabanlı yeniden kullanılabilir `shared/components/rich-text-editor/` bileşeni (Bold/İtalik/H2/Liste/Link araç çubuğu, `ControlValueAccessor` ile `ngModel` uyumlu — içerik HTML olarak saklanıyor). `/blog/write` sayfası tamamen yeniden tasarlandı: kart görünümlü form, sürükle-bırak benzeri tıkla-yükle kapak görseli alanı (yüklenince önizleme + kaldır butonu), video linki alanı, zengin metin editörü. `blog-detail`'de içerik artık `[innerHTML]` ile render ediliyor (Angular'ın varsayılan sanitizer'ı XSS'e karşı koruma sağlıyor) ve `video_url` varsa YouTube linkinden otomatik ID çıkarılıp gömülü oynatıcı gösteriliyor (YouTube değilse düz "Videoyu İzle" linki). Admin blog-editor'a da `video_url` alanı eklendi (parite).
+- Uçtan uca test edildi: görsel yükleme → gerçek Storage URL'i dönüyor, video linkli + HTML içerikli yazı oluşturma çalışıyor.
+
 ---
 
 ## Genel Notlar / Ortam
 
 - Backend Python bağımlılıkları proje-özel `.venv` içinde (`backend/.venv`) — global Python'a kurulmuyor.
 - Geliştirme sunucuları: `uvicorn app.main:app --port 8000` (backend), `ng serve --port 4200` (frontend).
-- Supabase migration'ları sırayla (`0001` → `0012`) SQL Editor'de elle çalıştırılıyor (proje CLI kurulu değil).
+- Supabase migration'ları sırayla (`0001` → `0014`) SQL Editor'de elle çalıştırılıyor (proje CLI kurulu değil).
 
 ## Commit Durumu
 
-Güncel — son commit `14f9ce7` (Faz 4 admin paneli + çoklu eğitmen başvuru sistemi, önceki commit `a65e5e9` Faz 0-3 + Udemy). Commit edilmemiş değişiklik yok.
+⚠️ Faz 6/7 + blog etkileşim/kullanıcı yazıları + `/blog/write` yeniden tasarımı henüz commit edilmedi. Son commit hâlâ `14f9ce7`.
 
 ## Şu Anda Neredeyiz / Sırada Ne Var
 
-Tamamlanan: **Faz 0 → Faz 4** + plan dışı iki ek (Udemy entegrasyonu, çoklu eğitmen sistemi). CLAUDE.md roadmap'ine göre kalanlar:
+Tamamlanan: **Faz 0 → Faz 4, Faz 6, Faz 7** + dört plan dışı ek (Udemy entegrasyonu, çoklu eğitmen sistemi, blog etkileşim/kullanıcı yazıları, zengin metin editörlü `/blog/write`). CLAUDE.md roadmap'ine göre kalanlar:
 
 - **Faz 5 — Ödeme Entegrasyonu:** v1 kapsamı dışında bırakıldı (bilinçli karar — manuel/pending onay akışı bunun yerine kullanılıyor). Gerçek Iyzico/Stripe entegrasyonu v2'de.
-- **Faz 6 — Blog Modülü:** Admin panelinde blog CRUD zaten çalışıyor (`/admin/blog`); ama kullanıcı tarafındaki `blog-list`/`blog-detail` sayfaları hâlâ placeholder — bunların doldurulması gerekiyor.
-- **Faz 7 — AI Özetleme:** Backend'de `POST /blog/{id}/summarize` iskeleti zaten var (Faz 0'dan, `ai_service.py` kullanıyor) ama uçtan uca test edilmedi, frontend'de özet gösterimi yok.
-- **Faz 8 — Kullanıcı Paneli, Sertifika & Yorumlar:** İlerleme takibi (`lesson_progress` tablosu var ama hiç kullanılmıyor), sertifika üretimi (`certificate_service.py` iskeleti Faz 0'dan beri var, hiç tetiklenmedi/test edilmedi), kurs yorumları/değerlendirme (`reviews` tablosu var, backend endpoint'i var ama frontend'de hiç UI yok).
+- **Faz 8 — Kullanıcı Paneli, Sertifika & Yorumlar:** İlerleme takibi (`lesson_progress` tablosu var ama hiç kullanılmıyor), sertifika üretimi (`certificate_service.py` iskeleti Faz 0'dan beri var, hiç tetiklenmedi/test edilmedi), **kurs** yorumları/değerlendirme (`reviews` tablosu var, backend endpoint'i var ama frontend'de hiç UI yok — blog yorumlarından farklı, kurs sayfası için).
 
-Bir sonraki oturumda kullanıcıyla hangi fazdan devam edileceği netleştirilecek.
+Bir sonraki oturumda önce commit atılmalı, sonra kullanıcıyla Faz 8'e mi geçileceği netleştirilecek.

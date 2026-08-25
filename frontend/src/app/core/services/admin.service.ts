@@ -69,6 +69,9 @@ export class AdminService {
   deleteBlogPost(id: string) {
     return this.api.delete<{ ok: boolean }>(`/admin/blog/${id}`);
   }
+  summarizeBlogPost(id: string) {
+    return this.api.post<{ ai_summary: string }>(`/blog/${id}/summarize`, {});
+  }
 
   // Eğitmenler
   listInstructors() {

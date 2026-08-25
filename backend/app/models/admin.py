@@ -69,6 +69,7 @@ class AdminBlogPostCreate(BaseModel):
     title: str
     slug: str
     cover_image_url: str | None = None
+    video_url: str | None = None
     content: str
     excerpt: str | None = None
     category: str | None = None
@@ -80,6 +81,7 @@ class AdminBlogPostUpdate(BaseModel):
     title: str | None = None
     slug: str | None = None
     cover_image_url: str | None = None
+    video_url: str | None = None
     content: str | None = None
     excerpt: str | None = None
     category: str | None = None
