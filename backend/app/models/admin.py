@@ -15,6 +15,7 @@ class AdminCourseCreate(BaseModel):
     language: str = "tr"
     is_published: bool = False
     provider: str = "internal"
+    platform_name: str | None = None
     external_url: str | None = None
     coupon_code: str | None = None
 
@@ -33,6 +34,7 @@ class AdminCourseUpdate(BaseModel):
     language: str | None = None
     is_published: bool | None = None
     provider: str | None = None
+    platform_name: str | None = None
     external_url: str | None = None
     coupon_code: str | None = None
 

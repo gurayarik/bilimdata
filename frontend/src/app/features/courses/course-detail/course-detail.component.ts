@@ -170,7 +170,7 @@ import { SupabaseService } from '../../../core/services/supabase.service';
               }
             </div>
 
-            @if (course.provider === 'udemy') {
+            @if (course.provider === 'external') {
               <a
                 [href]="course.external_url"
                 target="_blank"
@@ -178,8 +178,8 @@ import { SupabaseService } from '../../../core/services/supabase.service';
                 class="mt-4 block w-full rounded-md bg-accent-500 py-2.5 text-center font-semibold text-brand-900 hover:bg-accent-600"
               >
                 {{
-                  (isFree(course) ? 'course_detail.free_on_udemy' : 'course_detail.buy_on_udemy')
-                    | translate
+                  (isFree(course) ? 'course_detail.free_on_external' : 'course_detail.buy_on_external')
+                    | translate: { platform: course.platform_name || ('course_card.external' | translate) }
                 }}
               </a>
               @if (course.coupon_code) {

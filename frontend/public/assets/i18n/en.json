@@ -102,8 +102,8 @@
     "login_to_enroll": "Log In to Enroll",
     "already_enrolled": "You're enrolled in this course",
     "pending_approval": "Your enrollment was received — you'll get access once your payment is confirmed.",
-    "buy_on_udemy": "Buy on Udemy",
-    "free_on_udemy": "Get It Free on Udemy",
+    "buy_on_external": "Buy on {{platform}}",
+    "free_on_external": "Get It Free on {{platform}}",
     "coupon_note": "Coupon code applied automatically"
   },
   "player": {
@@ -120,11 +120,12 @@
     "login_required": "Log in to ask the course assistant a question."
   },
   "course_card": {
-    "free": "Free"
+    "free": "Free",
+    "external": "External"
   },
-  "udemy_section": {
-    "title": "Our Udemy Courses",
-    "subtitle": "Check out our courses on Udemy with special coupon pricing."
+  "external_section": {
+    "title": "Our Courses on Other Platforms",
+    "subtitle": "Check out our courses on partner platforms with special coupon pricing."
   },
   "blog_page": {
     "title": "Blog",

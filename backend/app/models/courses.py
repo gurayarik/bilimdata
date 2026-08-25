@@ -23,6 +23,7 @@ class CourseOut(BaseModel):
     language: str = "tr"
     instructor: InstructorOut | None = None
     provider: str = "internal"
+    platform_name: str | None = None
     external_url: str | None = None
     coupon_code: str | None = None
 

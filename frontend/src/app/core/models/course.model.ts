@@ -19,7 +19,8 @@ export interface Course {
   level: string | null;
   language: string;
   instructor: Instructor | null;
-  provider: 'internal' | 'udemy';
+  provider: 'internal' | 'external';
+  platform_name: string | null;
   external_url: string | null;
   coupon_code: string | null;
 }

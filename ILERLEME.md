@@ -251,6 +251,15 @@ Kullanıcı isteği: eğitmenler kendi platformumuzda yayınladıkları kurslara
 - **`my-courses.component.ts`:** Forma admin'deki ile aynı desende "Kurs Nerede Satılıyor?" seçici (Platformumuzda / Udemy'de) + Udemy seçilince görünen link+kupon kodu alanları eklendi. Kart grid'inde Udemy kursları mor "🔗 Udemy" rozetiyle ve fiyat yerine kupon koduyla gösteriliyor.
 - Doğrulama: `npx ng build --configuration development` hatasız. (Canlı uçtan uca test edilmedi — mevcut seed instructor kayıtlarının hiçbiri gerçek bir kullanıcı profiline bağlı değil; kod yolu admin'in zaten kullandığı, test edilmiş mantıkla birebir aynı.)
 
+## Sadece Udemy Değil, Herhangi Bir Harici Platform
+
+Kullanıcı isteği: kurslar yalnızca Udemy'de değil, başka platformlarda da (Coursera, Patreon, kendi YouTube kanalı vb.) tanıtılabilsin.
+
+- **Migration `0017_external_provider.sql`:** `courses.provider` alanının check constraint'i `'udemy'` yerine genel `'external'` değerini kabul edecek şekilde değiştirildi; yeni `platform_name text` kolonu eklendi (platform adı serbest metin, ör. "Udemy", "Coursera"). Var olan `provider='udemy'` satırları otomatik `provider='external', platform_name='Udemy'`e taşındı — geriye dönük veri kaybı yok.
+- **Backend:** `CourseOut`, `AdminCourseCreate/Update` modellerine `platform_name` eklendi; `course_chat.py`'deki bağlam metni artık hardcoded "Udemy" yerine `course.platform_name` kullanıyor (yoksa "harici bir platform" yazıyor).
+- **Frontend:** `Course`/`AdminCourse` tipleri `provider: 'internal' | 'external'` + `platform_name` olarak güncellendi. `course-card`, `course-detail` (satın alma CTA'sı artık `{{platform}}'de Satın Al` şeklinde parametrik), admin `course-editor` ve eğitmen `my-courses` formları hepsi "Sağlayıcı: Platform / Harici Platform" seçimi + platform adı alanı içerecek şekilde genelleştirildi. Ana sayfadaki "Udemy Eğitimlerimiz" bölümü `external_section` adıyla genel "Diğer Platformlardaki Eğitimlerimiz" oldu (`home.component.ts`'de `udemyCourses` → `externalCourses`). i18n anahtarları (`buy_on_external`/`free_on_external`/`external_section.*`/`course_card.external`) tr/en'e eklendi.
+- Doğrulama: `npx ng build --configuration development` hatasız; kod tabanında kalan "udemy" referansları yalnızca örnek placeholder metinleri (ör. "Udemy, Coursera").
+
 ## Commit Durumu
 
 Faz 8 + video-bitince-otomatik-ilerleme kodu tamamlandı, henüz commit edilmedi (bir sonraki adım commit).

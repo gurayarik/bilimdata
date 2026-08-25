@@ -12,9 +12,9 @@ import { Course } from '../../../core/models/course.model';
       [routerLink]="['/courses', course.slug]"
       class="relative flex flex-col overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm transition hover:shadow-md"
     >
-      @if (course.provider === 'udemy') {
+      @if (course.provider === 'external') {
         <span class="absolute left-2 top-2 rounded-full bg-brand-900 px-2 py-0.5 text-xs font-semibold text-white">
-          Udemy
+          {{ course.platform_name || ('course_card.external' | translate) }}
         </span>
       }
       @if (course.cover_image_url) {

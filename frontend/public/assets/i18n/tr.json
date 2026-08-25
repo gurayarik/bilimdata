@@ -102,8 +102,8 @@
     "login_to_enroll": "Kayıt Olmak İçin Giriş Yapın",
     "already_enrolled": "Bu eğitime kayıtlısınız",
     "pending_approval": "Kaydınız alındı — ödemeniz onaylandıktan sonra derslere erişebileceksiniz.",
-    "buy_on_udemy": "Udemy'de Satın Al",
-    "free_on_udemy": "Udemy'de Ücretsiz Al",
+    "buy_on_external": "{{platform}}'de Satın Al",
+    "free_on_external": "{{platform}}'de Ücretsiz Al",
     "coupon_note": "Kupon kodu otomatik uygulanır"
   },
   "player": {
@@ -120,11 +120,12 @@
     "login_required": "Kurs asistanına soru sorabilmek için giriş yap."
   },
   "course_card": {
-    "free": "Ücretsiz"
+    "free": "Ücretsiz",
+    "external": "Harici"
   },
-  "udemy_section": {
-    "title": "Udemy Eğitimlerimiz",
-    "subtitle": "Kupon kodlu özel fiyatlarla Udemy üzerindeki eğitimlerimize göz atın."
+  "external_section": {
+    "title": "Diğer Platformlardaki Eğitimlerimiz",
+    "subtitle": "Kupon kodlu özel fiyatlarla ortak platformlardaki eğitimlerimize göz atın."
   },
   "blog_page": {
     "title": "Blog",
