@@ -1,3 +1,6 @@
+import json
+import re
+
 import httpx
 
 from ..core.config import settings
@@ -93,3 +96,50 @@ kutlamasını yaz. Toplam yanıt 200 kelimeyi geçmesin."""
         response.raise_for_status()
         blocks = response.json()["content"]
         return next(b["text"] for b in blocks if b["type"] == "text")
+
+
+async def generate_quiz_questions(course_title: str, block_title: str, lessons: list[dict]) -> list[dict]:
+    """Bir ders bloğunun içeriğine dayanarak 10 soruluk çoktan seçmeli bir
+    sınav üretir. Döndürülen her öğe: {"question", "options" (4 eleman),
+    "correct_index"}. lessons: [{"title": ..., "description": ...}]."""
+    lessons_block = "\n".join(
+        f"- {lesson['title']}: {lesson['description'] or '(açıklama yok)'}" for lesson in lessons
+    )
+
+    prompt = f"""Sen bir eğitim içeriği uzmanısın. "{course_title}" adlı eğitimin
+"{block_title}" bölümündeki aşağıdaki derslere dayanarak, öğrencinin bu dersleri ne
+kadar öğrendiğini ölçen tam 10 adet çoktan seçmeli soru hazırla.
+
+Dersler:
+{lessons_block}
+
+Kurallar:
+- Her sorunun tam 4 şıkkı olsun, yalnızca bir tanesi doğru olsun.
+- Sorular doğrudan yukarıdaki derslerin içeriğiyle ilgili, net ve tek doğru
+  cevabı olan sorular olsun.
+- Yanıtını YALNIZCA aşağıdaki JSON şemasına birebir uyan, başka hiçbir metin,
+  açıklama, markdown işareti veya kod bloğu içermeyen bir JSON dizisi olarak ver:
+[{{"question": "...", "options": ["...", "...", "...", "..."], "correct_index": 0}}]"""
+
+    async with httpx.AsyncClient(timeout=90) as client:
+        response = await client.post(
+            ANTHROPIC_API_URL,
+            headers={
+                "x-api-key": settings.anthropic_api_key or "",
+                "anthropic-version": "2023-06-01",
+                "content-type": "application/json",
+            },
+            json={
+                "model": "claude-sonnet-5",
+                "max_tokens": 2500,
+                "messages": [{"role": "user", "content": prompt}],
+            },
+        )
+        response.raise_for_status()
+        blocks = response.json()["content"]
+        raw_text = next(b["text"] for b in blocks if b["type"] == "text")
+
+    # Claude bazen yanıtı ```json ... ``` kod bloğuna sarabiliyor; temizleyip parse ediyoruz.
+    cleaned = re.sub(r"^```(?:json)?\s*|\s*```$", "", raw_text.strip())
+    questions = json.loads(cleaned)
+    return questions

@@ -4,8 +4,10 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 import { TranslatePipe } from '@ngx-translate/core';
 import { CurriculumLesson, CurriculumSection } from '../../../core/models/lesson.model';
+import { QuizBlockSummary } from '../../../core/models/quiz.model';
 import { CourseService } from '../../../core/services/course.service';
 import { LessonService } from '../../../core/services/lesson.service';
+import { QuizService } from '../../../core/services/quiz.service';
 
 declare global {
   interface Window {
@@ -180,6 +182,32 @@ function loadYouTubeApi(): Promise<void> {
               </div>
             }
           </div>
+
+          @if (quizBlocks.length) {
+            <div class="mt-6">
+              <h2 class="font-semibold text-brand-900">🏆 Sınavlar</h2>
+              <div class="mt-3 flex flex-col gap-2">
+                @for (block of quizBlocks; track block.block_index) {
+                  @if (block.unlocked) {
+                    <a
+                      [routerLink]="['/courses', slug, 'quizzes', block.block_index]"
+                      class="flex items-center justify-between rounded-lg border border-accent-500/40 bg-accent-500/10 px-3 py-2 text-sm font-semibold text-brand-900 hover:bg-accent-500/20"
+                    >
+                      <span>{{ block.title }}</span>
+                      @if (block.best_score !== null) {
+                        <span class="text-xs font-medium text-slate-500">{{ block.best_score }}/10</span>
+                      }
+                    </a>
+                  } @else {
+                    <div class="flex items-center justify-between rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-400">
+                      <span>🔒 {{ block.title }}</span>
+                      <span class="text-xs">{{ block.total_lessons }} ders</span>
+                    </div>
+                  }
+                }
+              </div>
+            </div>
+          }
         </aside>
       </div>
     </section>
@@ -199,6 +227,7 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
   markingComplete = false;
   advancing = false;
   expandedSectionId: string | null = null;
+  quizBlocks: QuizBlockSummary[] = [];
 
   private ytPlayer: any = null;
   private progressPoll: ReturnType<typeof setInterval> | null = null;
@@ -210,6 +239,7 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
     private readonly router: Router,
     private readonly courseService: CourseService,
     private readonly lessonService: LessonService,
+    private readonly quizService: QuizService,
     private readonly sanitizer: DomSanitizer
   ) {}
 
@@ -224,10 +254,18 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
         this.expandActiveSection();
       });
       this.loadProgress();
+      this.loadQuizBlocks();
       if (this.loadedCourseSlug !== this.slug) {
         this.loadedCourseSlug = this.slug;
         this.courseService.getBySlug(this.slug).subscribe((course) => (this.courseTitle = course.title));
       }
+    });
+  }
+
+  private loadQuizBlocks() {
+    this.quizService.listBlocks(this.slug).subscribe({
+      next: (blocks) => (this.quizBlocks = blocks),
+      error: () => {},
     });
   }
 
@@ -306,6 +344,7 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
         this.markingComplete = false;
         this.progressPercent = result.progress_percent;
         this.completedLessonIds.add(this.lessonId);
+        this.loadQuizBlocks();
       },
       error: () => (this.markingComplete = false),
     });

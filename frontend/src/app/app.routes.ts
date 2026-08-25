@@ -23,6 +23,13 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'courses/:slug/quizzes/:blockIndex',
+    loadComponent: () =>
+      import('./features/courses/course-quiz/course-quiz.component').then(
+        (m) => m.CourseQuizComponent
+      ),
+  },
+  {
     path: 'courses/:slug',
     loadComponent: () =>
       import('./features/courses/course-detail/course-detail.component').then(

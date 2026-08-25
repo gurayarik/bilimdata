@@ -15,6 +15,7 @@ from .routers import (
     instructor_applications,
     lessons,
     profiles,
+    quizzes,
     reviews,
 )
 
@@ -41,6 +42,7 @@ app.include_router(certificates.router)
 app.include_router(ai.router)
 app.include_router(instructor_applications.router)
 app.include_router(instructor.router)
+app.include_router(quizzes.router)
 
 
 @app.get("/health")
