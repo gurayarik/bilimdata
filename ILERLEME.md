@@ -98,9 +98,9 @@ CLAUDE.md v1'de "çoklu eğitmen marketplace modeli yok" diyordu; kullanıcı bi
 - Geliştirme sunucuları: `uvicorn app.main:app --port 8000` (backend), `ng serve --port 4200` (frontend).
 - Supabase migration'ları sırayla (`0001` → `0012`) SQL Editor'de elle çalıştırılıyor (proje CLI kurulu değil).
 
-## ⚠️ Commit Durumu
+## Commit Durumu
 
-Son commit `a65e5e9` (Faz 0-3 + Udemy entegrasyonu). **O commit'ten sonra yapılan her şey henüz commit edilmedi** (33 dosya): Faz 4'ün tamamı (admin paneli), Udemy fiyat gösterimi bug'ı, enrollment/erişim mantığı düzeltmesi, ve tüm "Çoklu Eğitmen Başvuru/Onay Sistemi" özelliği. Bir sonraki oturuma başlarken önce bu değişiklikleri commit'lemek gerekiyor.
+Güncel — son commit `14f9ce7` (Faz 4 admin paneli + çoklu eğitmen başvuru sistemi, önceki commit `a65e5e9` Faz 0-3 + Udemy). Commit edilmemiş değişiklik yok.
 
 ## Şu Anda Neredeyiz / Sırada Ne Var
 
