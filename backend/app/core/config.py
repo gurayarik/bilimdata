@@ -11,6 +11,11 @@ class Settings(BaseSettings):
     cors_origins: str = "http://localhost:4200"
     youtube_api_key: str | None = None
     anthropic_api_key: str | None = None
+    openai_api_key: str | None = None
+    openai_model: str = "gpt-5-mini"
+    deepseek_api_key: str | None = None
+    deepseek_model: str = "deepseek-v4-flash"
+    ai_provider: str = "anthropic"  # "anthropic" | "openai" | "deepseek"
 
     @property
     def cors_origin_list(self) -> list[str]:

@@ -6,11 +6,85 @@ import httpx
 from ..core.config import settings
 
 ANTHROPIC_API_URL = "https://api.anthropic.com/v1/messages"
+ANTHROPIC_MODEL = "claude-haiku-4-5-20251001"
+OPENAI_API_URL = "https://api.openai.com/v1/chat/completions"
+DEEPSEEK_API_URL = "https://api.deepseek.com/v1/chat/completions"
 
 
-async def summarize_post(content: str) -> str:
-    """Blog yazısının özetini Claude ile üretir (Faz 7)."""
-    async with httpx.AsyncClient(timeout=60) as client:
+async def _call_openai_compatible(
+    api_url: str,
+    api_key: str,
+    model: str,
+    messages: list[dict],
+    max_tokens: int,
+    system: str | None,
+    timeout: float,
+    tokens_param: str,
+) -> str:
+    """OpenAI ve DeepSeek aynı Chat Completions gövde şemasını kullanıyor;
+    yalnızca token limiti parametresinin adı farklı (OpenAI'nin yeni
+    modelleri `max_completion_tokens`, DeepSeek `max_tokens` bekliyor)."""
+    payload_messages = messages if system is None else [{"role": "system", "content": system}, *messages]
+    async with httpx.AsyncClient(timeout=timeout) as client:
+        response = await client.post(
+            api_url,
+            headers={
+                "Authorization": f"Bearer {api_key}",
+                "content-type": "application/json",
+            },
+            json={
+                "model": model,
+                tokens_param: max_tokens,
+                "messages": payload_messages,
+            },
+        )
+        response.raise_for_status()
+        return response.json()["choices"][0]["message"]["content"]
+
+
+async def _call_llm(
+    messages: list[dict], max_tokens: int, system: str | None = None, timeout: float = 60
+) -> str:
+    """`settings.ai_provider`'a göre Anthropic, OpenAI ya da DeepSeek'e tek
+    tip bir sohbet çağrısı yapar ve düz metin yanıtı döndürür. messages:
+    [{"role": "user"|"assistant", "content": str}, ...] (system rolü hariç)."""
+    if settings.ai_provider == "openai":
+        return await _call_openai_compatible(
+            OPENAI_API_URL,
+            settings.openai_api_key or "",
+            settings.openai_model,
+            messages,
+            max_tokens,
+            system,
+            timeout,
+            tokens_param="max_completion_tokens",
+        )
+
+    if settings.ai_provider == "deepseek":
+        return await _call_openai_compatible(
+            DEEPSEEK_API_URL,
+            settings.deepseek_api_key or "",
+            settings.deepseek_model,
+            messages,
+            max_tokens,
+            system,
+            timeout,
+            tokens_param="max_tokens",
+        )
+
+    # Varsayılan: Anthropic. Sistem promptunu (kurs bağlamı gibi tekrar eden
+    # içerik) `cache_control` ile işaretleyerek prompt caching'i etkinleştiriyoruz
+    # — aynı bağlam kısa süre içinde tekrar gönderildiğinde girdi maliyeti düşer.
+    async with httpx.AsyncClient(timeout=timeout) as client:
+        request_body: dict = {
+            "model": ANTHROPIC_MODEL,
+            "max_tokens": max_tokens,
+            "messages": messages,
+        }
+        if system is not None:
+            request_body["system"] = [
+                {"type": "text", "text": system, "cache_control": {"type": "ephemeral"}}
+            ]
         response = await client.post(
             ANTHROPIC_API_URL,
             headers={
@@ -18,20 +92,24 @@ async def summarize_post(content: str) -> str:
                 "anthropic-version": "2023-06-01",
                 "content-type": "application/json",
             },
-            json={
-                "model": "claude-haiku-4-5-20251001",
-                "max_tokens": 300,
-                "messages": [
-                    {
-                        "role": "user",
-                        "content": f"Aşağıdaki blog yazısını 2-3 cümlede özetle:\n\n{content}",
-                    }
-                ],
-            },
+            json=request_body,
         )
         response.raise_for_status()
         blocks = response.json()["content"]
         return next(b["text"] for b in blocks if b["type"] == "text")
+
+
+async def summarize_post(content: str) -> str:
+    """Blog yazısının özetini AI ile üretir (Faz 7)."""
+    return await _call_llm(
+        messages=[
+            {
+                "role": "user",
+                "content": f"Aşağıdaki blog yazısını 2-3 cümlede özetle:\n\n{content}",
+            }
+        ],
+        max_tokens=300,
+    )
 
 
 async def generate_progress_coaching(
@@ -88,23 +166,7 @@ kutlamasını yaz. Toplam yanıt 200 kelimeyi geçmesin.
 
 {language_instruction}"""
 
-    async with httpx.AsyncClient(timeout=60) as client:
-        response = await client.post(
-            ANTHROPIC_API_URL,
-            headers={
-                "x-api-key": settings.anthropic_api_key or "",
-                "anthropic-version": "2023-06-01",
-                "content-type": "application/json",
-            },
-            json={
-                "model": "claude-haiku-4-5-20251001",
-                "max_tokens": 900,
-                "messages": [{"role": "user", "content": prompt}],
-            },
-        )
-        response.raise_for_status()
-        blocks = response.json()["content"]
-        return next(b["text"] for b in blocks if b["type"] == "text")
+    return await _call_llm(messages=[{"role": "user", "content": prompt}], max_tokens=900)
 
 
 async def generate_quiz_questions(course_title: str, block_title: str, lessons: list[dict]) -> list[dict]:
@@ -130,23 +192,9 @@ Kurallar:
   açıklama, markdown işareti veya kod bloğu içermeyen bir JSON dizisi olarak ver:
 [{{"question": "...", "options": ["...", "...", "...", "..."], "correct_index": 0}}]"""
 
-    async with httpx.AsyncClient(timeout=90) as client:
-        response = await client.post(
-            ANTHROPIC_API_URL,
-            headers={
-                "x-api-key": settings.anthropic_api_key or "",
-                "anthropic-version": "2023-06-01",
-                "content-type": "application/json",
-            },
-            json={
-                "model": "claude-haiku-4-5-20251001",
-                "max_tokens": 2500,
-                "messages": [{"role": "user", "content": prompt}],
-            },
-        )
-        response.raise_for_status()
-        blocks = response.json()["content"]
-        raw_text = next(b["text"] for b in blocks if b["type"] == "text")
+    raw_text = await _call_llm(
+        messages=[{"role": "user", "content": prompt}], max_tokens=2500, timeout=90
+    )
 
     # Claude bazen yanıtı ```json ... ``` kod bloğuna sarabiliyor; temizleyip parse ediyoruz.
     cleaned = re.sub(r"^```(?:json)?\s*|\s*```$", "", raw_text.strip())
@@ -187,21 +235,4 @@ Kurs Bilgisi:
 
     messages = [*history, {"role": "user", "content": message}]
 
-    async with httpx.AsyncClient(timeout=60) as client:
-        response = await client.post(
-            ANTHROPIC_API_URL,
-            headers={
-                "x-api-key": settings.anthropic_api_key or "",
-                "anthropic-version": "2023-06-01",
-                "content-type": "application/json",
-            },
-            json={
-                "model": "claude-haiku-4-5-20251001",
-                "max_tokens": 500,
-                "system": system_prompt,
-                "messages": messages,
-            },
-        )
-        response.raise_for_status()
-        blocks = response.json()["content"]
-        return next(b["text"] for b in blocks if b["type"] == "text")
+    return await _call_llm(messages=messages, max_tokens=500, system=system_prompt)
