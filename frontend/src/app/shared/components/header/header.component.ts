@@ -5,15 +5,16 @@ import { TranslatePipe } from '@ngx-translate/core';
 import { SupabaseService } from '../../../core/services/supabase.service';
 import { CtaButtonComponent } from '../cta-button/cta-button.component';
 import { LanguageSwitcherComponent } from '../language-switcher/language-switcher.component';
+import { LogoComponent } from '../logo/logo.component';
 
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [RouterLink, AsyncPipe, TranslatePipe, CtaButtonComponent, LanguageSwitcherComponent],
+  imports: [RouterLink, AsyncPipe, TranslatePipe, CtaButtonComponent, LanguageSwitcherComponent, LogoComponent],
   template: `
     <header class="sticky top-0 z-10 bg-brand-900 text-white shadow-md">
       <div class="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3">
-        <a routerLink="/" class="text-lg font-bold">{{ 'header.logo' | translate }}</a>
+        <a routerLink="/"><app-logo /></a>
 
         <nav class="hidden items-center gap-6 text-sm md:flex">
           <a routerLink="/courses" class="hover:text-accent-500">{{ 'nav.programs' | translate }}</a>

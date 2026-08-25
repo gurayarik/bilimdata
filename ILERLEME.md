@@ -289,6 +289,20 @@ Kullanıcı geri bildirimi: ana sayfada "Fırsatlar" tıklanınca yalnızca ayn�
 - Yeni i18n anahtarları: `deals_page.*` (title/subtitle/loading/empty/get_deal), `deals_teaser.*` (title/subtitle/cta) — tr/en.
 - Doğrulama: `npx ng build --configuration development` hatasız (yeni `deals-component` chunk'ı oluştu).
 
+## Giriş / Kayıt Sayfaları Yeniden Tasarımı
+
+Kullanıcı isteği: `/auth/login` ve `/auth/register` sayfaları da ikonlu ve modern olsun.
+
+- **Split ekran düzeni** (md ve üstü): solda gradyanlı (`brand-900`→`brand-800`) marka paneli — logo, karşılama emojisi (👋 giriş / 🚀 kayıt), başlık/alt metin, telif hakkı; sağda beyaz form kartı. Mobilde yalnızca form paneli gösteriliyor.
+- **Google butonu:** Artık gerçek, 4 renkli resmi Google "G" logosunu inline SVG olarak kullanıyor (emoji değil, marka doğruluğu için).
+- **Form alanları:** E-posta (📧), şifre (🔒), ad-soyad (🙂) ikonları input içine gömülü (relative/absolute konumlandırma), focus durumunda accent renkli halka.
+- **"veya" ayırıcı** iki form yöntemi arasına eklendi; gönder butonunda yükleniyor durumunda dönen bir spinner var.
+- Hata/bilgi mesajları artık düz metin değil, ikonlu (⚠️/✅) renkli kutular.
+- Yeni i18n anahtarları: `auth.login_subtitle`, `auth.register_subtitle`, `auth.welcome_back_title/subtitle`, `auth.welcome_new_title/subtitle`, `auth.or_divider` (tr/en).
+- **Ek:** Kayıt formuna "Şifre (Tekrar)" alanı eklendi; gönderilmeden önce istemci tarafında eşleşme kontrolü yapılıyor, uyuşmuyorsa `auth.password_mismatch` mesajıyla (aynı ⚠️ kutusunda) engelliyor, Supabase'e hiç istek gitmiyor.
+- **Gerçek logo:** Düz "BilimData" metni yerine yeniden kullanılabilir `shared/components/logo/logo.component.ts` eklendi — turuncu (accent-500) yuvarlatılmış kare rozet içinde artan yükseklikte 3 çubuk + tepede bir nokta (yükselen veri/büyüme motifi, lacivert brand-900 renginde), yanında "Bilim" (beyaz) + "Data" (turuncu) iki tonlu wordmark. Header, login ve register sayfalarındaki düz metin logo bu bileşenle değiştirildi.
+- Doğrulama: `npx ng build --configuration development` hatasız.
+
 ## Commit Durumu
 
 Faz 8 + video-bitince-otomatik-ilerleme kodu tamamlandı, henüz commit edilmedi (bir sonraki adım commit).
