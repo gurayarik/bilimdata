@@ -29,25 +29,58 @@ const WHY_US_ICONS: Record<string, string> = {
   standalone: true,
   imports: [TranslatePipe, RouterLink, CourseCardComponent, CtaButtonComponent],
   template: `
-    <section class="relative overflow-hidden bg-brand-900 text-white">
-      <div class="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-accent-500/20 blur-3xl"></div>
-      <div class="pointer-events-none absolute -bottom-32 -left-24 h-72 w-72 rounded-full bg-white/5 blur-3xl"></div>
+    <section class="relative isolate overflow-hidden bg-brand-900 text-white">
+      <!-- Nokta grid dokusu -->
+      <div
+        aria-hidden="true"
+        class="pointer-events-none absolute inset-0 -z-20 opacity-[0.35]"
+        style="background-image: radial-gradient(circle, rgba(255,255,255,0.7) 1.5px, transparent 1.5px); background-size: 26px 26px; -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 20%, black 40%, transparent 100%); mask-image: radial-gradient(ellipse 70% 60% at 50% 20%, black 40%, transparent 100%);"
+      ></div>
+      <!-- Merkezi turuncu glow -->
+      <div
+        aria-hidden="true"
+        class="pointer-events-none absolute left-1/2 top-0 -z-10 h-[30rem] w-[46rem] -translate-x-1/2 -translate-y-1/2 rounded-full bg-accent-500/25 blur-[140px]"
+      ></div>
+      <!-- Alt-sağ ikincil glow -->
+      <div
+        aria-hidden="true"
+        class="pointer-events-none absolute -right-24 bottom-0 -z-10 h-72 w-72 rounded-full bg-accent-600/15 blur-[110px]"
+      ></div>
+      <!-- Sol üst üçüncül glow (derinlik) -->
+      <div
+        aria-hidden="true"
+        class="pointer-events-none absolute -left-20 top-10 -z-10 h-64 w-64 rounded-full bg-accent-500/10 blur-[100px]"
+      ></div>
 
       <div class="relative mx-auto max-w-6xl px-4 py-20 text-center sm:py-28">
-        <span class="inline-block rounded-full bg-white/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-wide text-accent-500">
-          BilimData
-        </span>
-        <h1 class="mx-auto mt-5 max-w-3xl text-3xl font-bold leading-tight sm:text-5xl">
+        @if (hasDeals) {
+          <div class="mb-8 flex justify-center">
+            <a
+              routerLink="/deals"
+              class="group inline-flex items-center gap-2 rounded-full border border-accent-500/30 bg-accent-500/10 px-4 py-1.5 text-xs font-medium text-white transition hover:border-accent-500/60 hover:bg-accent-500/15 sm:text-sm"
+            >
+              <span class="relative flex h-2 w-2">
+                <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent-500 opacity-75"></span>
+                <span class="relative inline-flex h-2 w-2 rounded-full bg-accent-500"></span>
+              </span>
+              {{ 'hero.announcement_text' | translate }}
+              <span class="font-semibold text-accent-500 transition group-hover:text-accent-600">
+                {{ 'hero.announcement_link' | translate }} →
+              </span>
+            </a>
+          </div>
+        }
+        <h1 class="mx-auto max-w-3xl text-4xl font-bold tracking-tight leading-[1.1] sm:text-6xl">
           {{ 'hero.title' | translate }}
         </h1>
-        <p class="mx-auto mt-5 max-w-2xl text-lg text-white/80">{{ 'hero.subtitle' | translate }}</p>
-        <div class="mt-8 flex flex-wrap justify-center gap-4">
+        <p class="mx-auto mt-6 max-w-2xl text-lg text-white/70">{{ 'hero.subtitle' | translate }}</p>
+        <div class="mt-9 flex flex-wrap justify-center gap-4">
           <app-cta-button [label]="'hero.cta_explore' | translate" routerLink="/courses" variant="primary" />
           <app-cta-button [label]="'hero.cta_deals' | translate" routerLink="/courses" variant="secondary" />
         </div>
 
         @if (totalCourses) {
-          <div class="mx-auto mt-14 grid max-w-2xl grid-cols-3 gap-4 border-t border-white/10 pt-8">
+          <div class="mx-auto mt-16 grid max-w-2xl grid-cols-3 gap-4 border-t border-white/10 pt-8">
             <div>
               <p class="text-2xl font-bold text-accent-500 sm:text-3xl">{{ totalCourses }}+</p>
               <p class="mt-1 text-xs text-white/60 sm:text-sm">{{ 'hero.stat_courses' | translate }}</p>

@@ -19,7 +19,9 @@
     "cta_deals": "Ücretsiz Fırsatlar",
     "stat_courses": "Eğitim",
     "stat_categories": "Kategori",
-    "stat_videos": "Video"
+    "stat_videos": "Video",
+    "announcement_text": "Sınırlı süreli fırsatlar yayında —",
+    "announcement_link": "Hemen incele"
   },
   "categories": {
     "title": "Kapsamlı Uzmanlık Alanları",
@@ -131,7 +133,10 @@
     "pending_approval": "Kaydınız alındı — ödemeniz onaylandıktan sonra derslere erişebileceksiniz.",
     "buy_on_external": "{{platform}}'de Satın Al",
     "free_on_external": "{{platform}}'de Ücretsiz Al",
-    "coupon_note": "Kupon kodu otomatik uygulanır"
+    "coupon_note": "Kupon kodu otomatik uygulanır",
+    "level_beginner": "Başlangıç",
+    "level_intermediate": "Orta Seviye",
+    "level_advanced": "İleri Seviye"
   },
   "player": {
     "need_login": "Bu dersi izlemek için giriş yapmalısınız.",

@@ -22,22 +22,40 @@ import { buildCourseJsonLd } from '../../../core/utils/structured-data';
   imports: [RouterLink, AsyncPipe, TranslatePipe, FormsModule],
   template: `
     @if (course) {
-      <section class="bg-brand-900 text-white">
-        <div class="mx-auto max-w-5xl px-4 py-12">
-          <h1 class="text-2xl font-bold sm:text-3xl">{{ course.title }}</h1>
+      <section class="relative isolate overflow-hidden bg-brand-900 text-white">
+        <div
+          aria-hidden="true"
+          class="pointer-events-none absolute inset-0 -z-20 opacity-[0.25]"
+          style="background-image: radial-gradient(circle, rgba(255,255,255,0.6) 1.5px, transparent 1.5px); background-size: 26px 26px; -webkit-mask-image: radial-gradient(ellipse 70% 60% at 30% 0%, black 40%, transparent 100%); mask-image: radial-gradient(ellipse 70% 60% at 30% 0%, black 40%, transparent 100%);"
+        ></div>
+        <div
+          aria-hidden="true"
+          class="pointer-events-none absolute left-0 top-0 -z-10 h-96 w-96 -translate-x-1/3 -translate-y-1/3 rounded-full bg-accent-500/25 blur-[120px]"
+        ></div>
+
+        <div class="relative mx-auto max-w-5xl px-4 py-14">
+          @if (course.level) {
+            <span class="inline-block rounded-full bg-white/10 px-3 py-1 text-xs font-semibold tracking-wide text-accent-500">
+              {{ ('course_detail.level_' + course.level) | translate }}
+            </span>
+          }
+          <h1 class="mt-3 max-w-3xl text-2xl font-bold tracking-tight sm:text-4xl">{{ course.title }}</h1>
           @if (course.short_description) {
-            <p class="mt-3 max-w-2xl text-white/80">{{ course.short_description }}</p>
+            <p class="mt-3 max-w-2xl text-white/70">{{ course.short_description }}</p>
           }
           @if (course.instructor) {
-            <div class="mt-6 flex items-center gap-3">
+            <div class="mt-7 flex items-center gap-3">
               @if (course.instructor.avatar_url) {
                 <img
                   [src]="course.instructor.avatar_url"
-                  class="h-10 w-10 rounded-full"
+                  class="h-11 w-11 rounded-full ring-2 ring-accent-500/50"
                   alt="{{ course.instructor.title }}"
                 />
               }
-              <span class="text-sm text-white/80">{{ course.instructor.title }}</span>
+              <div>
+                <p class="text-sm font-semibold text-white">{{ course.instructor.title }}</p>
+                <p class="text-xs text-white/50">{{ 'course_detail.about' | translate }}</p>
+              </div>
             </div>
           }
         </div>
@@ -46,56 +64,73 @@ import { buildCourseJsonLd } from '../../../core/utils/structured-data';
       <section class="mx-auto grid max-w-5xl grid-cols-1 gap-8 px-4 py-10 md:grid-cols-3">
         <div class="md:col-span-2">
           @if (course.description) {
-            <div>
+            <div class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
               <h2 class="text-lg font-bold text-brand-900">
                 {{ 'course_detail.about' | translate }}
               </h2>
-              <p class="mt-3 whitespace-pre-line text-slate-700">{{ course.description }}</p>
+              <p class="mt-3 whitespace-pre-line leading-relaxed text-slate-600">{{ course.description }}</p>
             </div>
           }
 
           @if (sections.length) {
-          <div class="mt-10">
+          <div class="mt-8">
             <h2 class="text-lg font-bold text-brand-900">
               {{ 'course_detail.curriculum' | translate }}
             </h2>
-            <div class="mt-4 flex flex-col gap-4">
+            <div class="mt-4 flex flex-col gap-2.5">
               @for (section of sections; track section.id) {
-                <div class="rounded-lg border border-slate-200">
-                  <div class="border-b border-slate-200 bg-slate-50 px-4 py-2 font-semibold text-brand-900">
-                    {{ section.title }}
-                  </div>
-                  <ul>
-                    @for (lesson of section.lessons; track lesson.id) {
-                      <li class="border-b border-slate-100 px-4 py-2.5 text-sm last:border-b-0">
-                        <div class="flex items-center justify-between">
+                <div class="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200 transition">
+                  <button
+                    type="button"
+                    class="flex w-full items-center justify-between px-5 py-4 text-left"
+                    (click)="toggleSection(section.id)"
+                  >
+                    <span class="font-semibold text-brand-900">{{ section.title }}</span>
+                    <span class="flex items-center gap-2 text-xs font-medium text-slate-400">
+                      {{ section.lessons.length }} ders
+                      <span class="inline-block transition-transform" [class.rotate-90]="expandedSectionId === section.id">
+                        ›
+                      </span>
+                    </span>
+                  </button>
+                  @if (expandedSectionId === section.id) {
+                    <ul class="border-t border-slate-100 pb-2">
+                      @for (lesson of section.lessons; track lesson.id) {
+                        <li class="px-3 pt-2">
                           @if (canPlay(lesson)) {
                             <a
                               [routerLink]="['/courses', course.slug, 'lessons', lesson.id]"
-                              class="flex-1 text-brand-900 hover:text-accent-600"
+                              class="flex items-center gap-3 rounded-xl px-2 py-2 text-sm transition hover:bg-slate-50"
                             >
-                              ▶ {{ lesson.title }}
+                              <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-accent-500/10 text-accent-600">▶</span>
+                              <span class="min-w-0 flex-1 truncate text-brand-900">{{ lesson.title }}</span>
+                              @if (lesson.duration_seconds) {
+                                <span class="shrink-0 text-xs text-slate-400">{{ formatDuration(lesson.duration_seconds) }}</span>
+                              }
                             </a>
                           } @else {
-                            <span class="flex-1 text-slate-400">🔒 {{ lesson.title }}</span>
+                            <div class="flex items-center gap-3 rounded-xl px-2 py-2 text-sm text-slate-400">
+                              <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-slate-100">🔒</span>
+                              <span class="min-w-0 flex-1 truncate">{{ lesson.title }}</span>
+                              @if (lesson.duration_seconds) {
+                                <span class="shrink-0 text-xs text-slate-400">{{ formatDuration(lesson.duration_seconds) }}</span>
+                              }
+                            </div>
                           }
-                          @if (lesson.duration_seconds) {
-                            <span class="text-slate-400">{{ formatDuration(lesson.duration_seconds) }}</span>
+                          @if (lesson.description) {
+                            <p class="ml-10 mt-0.5 text-xs text-slate-500">{{ lesson.description }}</p>
                           }
-                        </div>
-                        @if (lesson.description) {
-                          <p class="mt-1 text-xs text-slate-500">{{ lesson.description }}</p>
-                        }
-                      </li>
-                    }
-                  </ul>
+                        </li>
+                      }
+                    </ul>
+                  }
                 </div>
               }
             </div>
           </div>
           }
 
-          <div class="mt-10">
+          <div class="mt-8 rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
             <h2 class="text-lg font-bold text-brand-900">
               Değerlendirmeler
               @if (reviewSummary.count) {
@@ -107,7 +142,7 @@ import { buildCourseJsonLd } from '../../../core/utils/structured-data';
 
             @if (isEnrolled) {
               <form
-                class="mt-4 flex flex-col gap-2 rounded-lg border border-slate-200 p-4"
+                class="mt-4 flex flex-col gap-2 rounded-xl bg-slate-50 p-4 ring-1 ring-slate-100"
                 (ngSubmit)="submitReview()"
               >
                 <div class="flex items-center gap-1">
@@ -118,7 +153,7 @@ import { buildCourseJsonLd } from '../../../core/utils/structured-data';
                   }
                 </div>
                 <textarea
-                  class="rounded-md border border-slate-300 px-3 py-2 text-sm"
+                  class="rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none"
                   rows="3"
                   [(ngModel)]="reviewForm.comment"
                   name="comment"
@@ -127,7 +162,7 @@ import { buildCourseJsonLd } from '../../../core/utils/structured-data';
                 <button
                   type="submit"
                   [disabled]="!reviewForm.rating"
-                  class="self-start rounded-md bg-accent-500 px-4 py-2 text-sm font-semibold text-brand-900 hover:bg-accent-600 disabled:opacity-50"
+                  class="self-start rounded-full bg-accent-500 px-5 py-2 text-sm font-semibold text-brand-900 shadow-sm transition hover:bg-accent-600 disabled:opacity-50"
                 >
                   Gönder
                 </button>
@@ -136,7 +171,7 @@ import { buildCourseJsonLd } from '../../../core/utils/structured-data';
 
             <ul class="mt-4 flex flex-col gap-3">
               @for (review of reviews; track review.id) {
-                <li class="rounded-lg border border-slate-100 bg-slate-50 p-3">
+                <li class="rounded-xl bg-slate-50 p-4 ring-1 ring-slate-100">
                   <div class="flex items-center justify-between">
                     <span class="text-sm font-semibold text-brand-900">
                       {{ review.author?.full_name || 'Kullanıcı' }}
@@ -144,7 +179,7 @@ import { buildCourseJsonLd } from '../../../core/utils/structured-data';
                     <span class="text-sm">{{ stars(review.rating) }}</span>
                   </div>
                   @if (review.comment) {
-                    <p class="mt-1 text-sm text-slate-700">{{ review.comment }}</p>
+                    <p class="mt-1 text-sm text-slate-600">{{ review.comment }}</p>
                   }
                 </li>
               }
@@ -153,22 +188,22 @@ import { buildCourseJsonLd } from '../../../core/utils/structured-data';
         </div>
 
         <div>
-          <div class="rounded-lg border border-slate-200 p-5 shadow-sm">
+          <div class="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200 md:sticky md:top-20">
             @if (course.cover_image_url) {
-              <img [src]="course.cover_image_url" class="mb-4 w-full rounded-md" [alt]="course.title" />
+              <img [src]="course.cover_image_url" class="mb-4 w-full rounded-xl" [alt]="course.title" />
             }
             <div class="flex items-baseline gap-2">
               @if (course.discount_price !== null && course.discount_price !== undefined) {
                 <span class="text-sm text-slate-400 line-through">{{ course.price }} ₺</span>
                 @if (course.discount_price === 0) {
-                  <span class="text-xl font-bold text-accent-600">{{ 'course_card.free' | translate }}</span>
+                  <span class="text-2xl font-bold text-accent-600">{{ 'course_card.free' | translate }}</span>
                 } @else {
-                  <span class="text-xl font-bold text-accent-600">{{ course.discount_price }} ₺</span>
+                  <span class="text-2xl font-bold text-accent-600">{{ course.discount_price }} ₺</span>
                 }
               } @else if (course.price === 0) {
-                <span class="text-xl font-bold text-accent-600">{{ 'course_card.free' | translate }}</span>
+                <span class="text-2xl font-bold text-accent-600">{{ 'course_card.free' | translate }}</span>
               } @else {
-                <span class="text-xl font-bold text-brand-900">{{ course.price }} ₺</span>
+                <span class="text-2xl font-bold text-brand-900">{{ course.price }} ₺</span>
               }
             </div>
 
@@ -177,7 +212,7 @@ import { buildCourseJsonLd } from '../../../core/utils/structured-data';
                 [href]="course.external_url"
                 target="_blank"
                 rel="noopener"
-                class="mt-4 block w-full rounded-md bg-accent-500 py-2.5 text-center font-semibold text-brand-900 hover:bg-accent-600"
+                class="mt-4 block w-full rounded-full bg-accent-500 py-2.5 text-center font-semibold text-brand-900 shadow-sm transition hover:bg-accent-600"
               >
                 {{
                   (isFree(course) ? 'course_detail.free_on_external' : 'course_detail.buy_on_external')
@@ -190,17 +225,17 @@ import { buildCourseJsonLd } from '../../../core/utils/structured-data';
                 </p>
               }
             } @else if (isEnrolled) {
-              <p class="mt-4 rounded-md bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
+              <p class="mt-4 rounded-xl bg-emerald-50 px-3 py-2.5 text-center text-sm font-medium text-emerald-700 ring-1 ring-emerald-100">
                 {{ 'course_detail.already_enrolled' | translate }}
               </p>
             } @else if (pendingApproval) {
-              <p class="mt-4 rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-700">
+              <p class="mt-4 rounded-xl bg-amber-50 px-3 py-2.5 text-center text-sm font-medium text-amber-700 ring-1 ring-amber-100">
                 {{ 'course_detail.pending_approval' | translate }}
               </p>
             } @else if (session$ | async) {
               <button
                 type="button"
-                class="mt-4 w-full rounded-md bg-accent-500 py-2.5 font-semibold text-brand-900 hover:bg-accent-600"
+                class="mt-4 w-full rounded-full bg-accent-500 py-2.5 font-semibold text-brand-900 shadow-sm transition hover:bg-accent-600"
                 [disabled]="enrolling"
                 (click)="enroll()"
               >
@@ -209,7 +244,7 @@ import { buildCourseJsonLd } from '../../../core/utils/structured-data';
             } @else {
               <a
                 routerLink="/auth/login"
-                class="mt-4 block w-full rounded-md bg-accent-500 py-2.5 text-center font-semibold text-brand-900 hover:bg-accent-600"
+                class="mt-4 block w-full rounded-full bg-accent-500 py-2.5 text-center font-semibold text-brand-900 shadow-sm transition hover:bg-accent-600"
               >
                 {{ 'course_detail.login_to_enroll' | translate }}
               </a>
@@ -217,7 +252,7 @@ import { buildCourseJsonLd } from '../../../core/utils/structured-data';
           </div>
 
           @if (session$ | async) {
-            <div class="mt-6 flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-md">
+            <div class="mt-6 flex flex-col overflow-hidden rounded-2xl bg-white shadow-md ring-1 ring-slate-200">
               <div class="flex items-center gap-3 bg-gradient-to-r from-brand-900 to-brand-800 px-4 py-3 text-white">
                 <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/15 text-lg">
                   🤖
@@ -295,7 +330,7 @@ import { buildCourseJsonLd } from '../../../core/utils/structured-data';
               </form>
             </div>
           } @else {
-            <div class="mt-6 rounded-2xl border border-slate-200 bg-white p-5 text-center shadow-sm">
+            <div class="mt-6 rounded-2xl bg-white p-5 text-center shadow-sm ring-1 ring-slate-200">
               <span class="text-2xl">💬</span>
               <p class="mt-2 text-sm text-slate-500">
                 {{ 'course_chat.login_required' | translate }}
@@ -313,6 +348,7 @@ import { buildCourseJsonLd } from '../../../core/utils/structured-data';
 export class CourseDetailComponent implements OnInit {
   course: Course | null = null;
   sections: CurriculumSection[] = [];
+  expandedSectionId: string | null = null;
   isEnrolled = false;
   pendingApproval = false;
   enrolling = false;
@@ -354,7 +390,14 @@ export class CourseDetailComponent implements OnInit {
       },
       error: () => this.seo.setTitle('Kurs bulunamadı'),
     });
-    this.courseService.getCurriculum(slug).subscribe((sections) => (this.sections = sections));
+    this.courseService.getCurriculum(slug).subscribe((sections) => {
+      this.sections = sections;
+      this.expandedSectionId = sections[0]?.id ?? null;
+    });
+  }
+
+  toggleSection(sectionId: string) {
+    this.expandedSectionId = this.expandedSectionId === sectionId ? null : sectionId;
   }
 
   stars(rating: number) {

@@ -19,7 +19,9 @@
     "cta_deals": "Free Deals",
     "stat_courses": "Courses",
     "stat_categories": "Categories",
-    "stat_videos": "Videos"
+    "stat_videos": "Videos",
+    "announcement_text": "Limited-time deals are live —",
+    "announcement_link": "Check them out"
   },
   "categories": {
     "title": "Comprehensive Areas of Expertise",
@@ -131,7 +133,10 @@
     "pending_approval": "Your enrollment was received — you'll get access once your payment is confirmed.",
     "buy_on_external": "Buy on {{platform}}",
     "free_on_external": "Get It Free on {{platform}}",
-    "coupon_note": "Coupon code applied automatically"
+    "coupon_note": "Coupon code applied automatically",
+    "level_beginner": "Beginner",
+    "level_intermediate": "Intermediate",
+    "level_advanced": "Advanced"
   },
   "player": {
     "need_login": "You need to log in to watch this lesson.",
