@@ -7,6 +7,8 @@ import { TranslatePipe } from '@ngx-translate/core';
 import { BlogComment, BlogPost } from '../../../core/models/blog.model';
 import { BlogService } from '../../../core/services/blog.service';
 import { SupabaseService } from '../../../core/services/supabase.service';
+import { SeoService } from '../../../core/services/seo.service';
+import { buildBlogPostingJsonLd } from '../../../core/utils/structured-data';
 
 function extractYouTubeId(url: string): string | null {
   const match = url.match(
@@ -151,7 +153,8 @@ export class BlogDetailComponent implements OnInit {
     private readonly blogService: BlogService,
     private readonly supabase: SupabaseService,
     private readonly router: Router,
-    private readonly sanitizer: DomSanitizer
+    private readonly sanitizer: DomSanitizer,
+    private readonly seo: SeoService
   ) {
     this.session$ = this.supabase.session$;
   }
@@ -163,6 +166,11 @@ export class BlogDetailComponent implements OnInit {
         this.post = post;
         this.blogService.getComments(post.id).subscribe((comments) => (this.comments = comments));
         this.blogService.getLikes(post.id).subscribe((likes) => (this.likes = likes));
+        this.seo.setTitle(post.title);
+        this.seo.setDescription(post.excerpt ?? post.ai_summary ?? '');
+        this.seo.setImage(post.cover_image_url);
+        this.seo.setCanonical(`/blog/${post.slug}`);
+        this.seo.setJsonLd(buildBlogPostingJsonLd(post), 'blog-jsonld');
         if (post.video_url) {
           const youtubeId = extractYouTubeId(post.video_url);
           if (youtubeId) {
@@ -172,7 +180,10 @@ export class BlogDetailComponent implements OnInit {
           }
         }
       },
-      error: () => (this.notFound = true),
+      error: () => {
+        this.notFound = true;
+        this.seo.setTitle('Yazı bulunamadı');
+      },
     });
   }
 

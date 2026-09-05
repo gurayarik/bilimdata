@@ -6,6 +6,7 @@ import { Course } from '../../../core/models/course.model';
 import { CategoryService } from '../../../core/services/category.service';
 import { CourseService } from '../../../core/services/course.service';
 import { CourseCardComponent } from '../../../shared/components/course-card/course-card.component';
+import { SeoService } from '../../../core/services/seo.service';
 
 @Component({
   selector: 'app-course-list',
@@ -58,10 +59,16 @@ export class CourseListComponent implements OnInit {
   constructor(
     private readonly route: ActivatedRoute,
     private readonly categoryService: CategoryService,
-    private readonly courseService: CourseService
+    private readonly courseService: CourseService,
+    private readonly seo: SeoService
   ) {}
 
   ngOnInit() {
+    this.seo.setTitle('Tüm Kurslar');
+    this.seo.setDescription(
+      'BilimData kurs kataloğunu keşfedin: veri bilimi, Python ve yazılım geliştirme eğitimleri.'
+    );
+    this.seo.setCanonical('/courses');
     this.categoryService.list().subscribe((categories) => (this.categories = categories));
     this.selectedCategoryId = this.route.snapshot.queryParamMap.get('category');
     this.loadCourses();

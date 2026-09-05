@@ -1,5 +1,6 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
+import { SeoService } from '../../../core/services/seo.service';
 
 @Component({
   selector: 'app-terms',
@@ -301,6 +302,15 @@ import { TranslateService } from '@ngx-translate/core';
     </section>
   `,
 })
-export class TermsComponent {
-  constructor(public readonly translate: TranslateService) {}
+export class TermsComponent implements OnInit {
+  constructor(
+    public readonly translate: TranslateService,
+    private readonly seo: SeoService
+  ) {}
+
+  ngOnInit() {
+    this.seo.setTitle('Kullanım Koşulları');
+    this.seo.setDescription('BilimData kullanım koşulları.');
+    this.seo.setCanonical('/terms');
+  }
 }

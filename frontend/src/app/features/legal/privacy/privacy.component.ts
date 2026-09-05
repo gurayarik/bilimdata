@@ -1,5 +1,6 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
+import { SeoService } from '../../../core/services/seo.service';
 
 @Component({
   selector: 'app-privacy',
@@ -281,6 +282,15 @@ import { TranslateService } from '@ngx-translate/core';
     </section>
   `,
 })
-export class PrivacyComponent {
-  constructor(public readonly translate: TranslateService) {}
+export class PrivacyComponent implements OnInit {
+  constructor(
+    public readonly translate: TranslateService,
+    private readonly seo: SeoService
+  ) {}
+
+  ngOnInit() {
+    this.seo.setTitle('Gizlilik Politikası');
+    this.seo.setDescription('BilimData gizlilik politikası — kişisel verilerinizin nasıl işlendiği.');
+    this.seo.setCanonical('/privacy');
+  }
 }

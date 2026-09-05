@@ -4,6 +4,7 @@ import { RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 import { Course } from '../../core/models/course.model';
 import { CourseService } from '../../core/services/course.service';
+import { SeoService } from '../../core/services/seo.service';
 
 @Component({
   selector: 'app-deals',
@@ -123,9 +124,15 @@ export class DealsComponent implements OnInit {
   instructorDeals: Course[] = [];
   copiedId: string | null = null;
 
-  constructor(private readonly courseService: CourseService) {}
+  constructor(
+    private readonly courseService: CourseService,
+    private readonly seo: SeoService
+  ) {}
 
   ngOnInit() {
+    this.seo.setTitle('Fırsatlar');
+    this.seo.setDescription('BilimData eğitmenlerinden özel indirim ve kupon fırsatları.');
+    this.seo.setCanonical('/deals');
     this.courseService.list().subscribe({
       next: (courses) => {
         this.loading = false;

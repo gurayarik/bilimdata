@@ -1,4 +1,5 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, Inject, OnDestroy, OnInit, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -233,6 +234,7 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
   private progressPoll: ReturnType<typeof setInterval> | null = null;
   private endedHandled = false;
   private loadedCourseSlug = '';
+  private readonly isBrowser: boolean;
 
   constructor(
     private readonly route: ActivatedRoute,
@@ -240,8 +242,11 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
     private readonly courseService: CourseService,
     private readonly lessonService: LessonService,
     private readonly quizService: QuizService,
-    private readonly sanitizer: DomSanitizer
-  ) {}
+    private readonly sanitizer: DomSanitizer,
+    @Inject(PLATFORM_ID) platformId: object
+  ) {
+    this.isBrowser = isPlatformBrowser(platformId);
+  }
 
   ngOnInit() {
     this.route.paramMap.subscribe((params) => {
@@ -358,7 +363,7 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
       next: (lesson) => {
         this.lessonTitle = lesson.title;
         this.lessonDescription = lesson.description;
-        if (lesson.youtube_video_id) {
+        if (lesson.youtube_video_id && this.isBrowser) {
           const origin = encodeURIComponent(window.location.origin);
           this.videoUrl = this.sanitizer.bypassSecurityTrustResourceUrl(
             `https://www.youtube.com/embed/${lesson.youtube_video_id}?rel=0&modestbranding=1&enablejsapi=1&origin=${origin}`

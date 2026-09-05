@@ -34,7 +34,20 @@
             "styles": [
               "src/styles.scss"
             ],
-            "scripts": []
+            "scripts": [],
+            "server": "src/main.server.ts",
+            "security": {
+              "allowedHosts": [
+                "localhost",
+                "bilimdata.com",
+                "www.bilimdata.com",
+                "bilimdata.up.railway.app"
+              ]
+            },
+            "prerender": false,
+            "ssr": {
+              "entry": "src/server.ts"
+            }
           },
           "configurations": {
             "production": {

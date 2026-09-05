@@ -1,4 +1,4 @@
-import { provideHttpClient, withInterceptors } from '@angular/common/http';
+import { provideHttpClient, withFetch, withInterceptors } from '@angular/common/http';
 import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
 import { provideRouter, withInMemoryScrolling } from '@angular/router';
 import { provideTranslateHttpLoader } from '@ngx-translate/http-loader';
@@ -6,10 +6,18 @@ import { provideTranslateService } from '@ngx-translate/core';
 
 import { routes } from './app.routes';
 import { authInterceptor } from './core/services/auth.interceptor';
+import {
+  provideClientHydration,
+  withEventReplay,
+  withHttpTransferCacheOptions,
+} from '@angular/platform-browser';
 
 const SUPPORTED_LANGS = ['tr', 'en'] as const;
 
 function resolveInitialLang(): 'tr' | 'en' {
+  if (typeof localStorage === 'undefined') {
+    return 'tr';
+  }
   const stored = localStorage.getItem('lang');
   if (stored && (SUPPORTED_LANGS as readonly string[]).includes(stored)) {
     return stored as 'tr' | 'en';
@@ -24,11 +32,15 @@ export const appConfig: ApplicationConfig = {
       routes,
       withInMemoryScrolling({ anchorScrolling: 'enabled', scrollPositionRestoration: 'enabled' })
     ),
-    provideHttpClient(withInterceptors([authInterceptor])),
+    provideHttpClient(withInterceptors([authInterceptor]), withFetch()),
     provideTranslateService({
       fallbackLang: 'tr',
       lang: resolveInitialLang(),
       loader: provideTranslateHttpLoader({ prefix: '/assets/i18n/', suffix: '.json' }),
     }),
+    provideClientHydration(
+      withEventReplay(),
+      withHttpTransferCacheOptions({ includePostRequests: false })
+    ),
   ],
 };

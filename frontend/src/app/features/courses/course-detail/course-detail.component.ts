@@ -13,6 +13,8 @@ import { CourseService } from '../../../core/services/course.service';
 import { EnrollmentService } from '../../../core/services/enrollment.service';
 import { ReviewService } from '../../../core/services/review.service';
 import { SupabaseService } from '../../../core/services/supabase.service';
+import { SeoService } from '../../../core/services/seo.service';
+import { buildCourseJsonLd } from '../../../core/utils/structured-data';
 
 @Component({
   selector: 'app-course-detail',
@@ -331,17 +333,26 @@ export class CourseDetailComponent implements OnInit {
     private readonly reviewService: ReviewService,
     private readonly chatService: ChatService,
     private readonly translate: TranslateService,
-    private readonly supabase: SupabaseService
+    private readonly supabase: SupabaseService,
+    private readonly seo: SeoService
   ) {
     this.session$ = this.supabase.session$;
   }
 
   ngOnInit() {
     const slug = this.route.snapshot.paramMap.get('slug')!;
-    this.courseService.getBySlug(slug).subscribe((course) => {
-      this.course = course;
-      this.refreshEnrollment(course.id);
-      this.loadReviews(course.id);
+    this.courseService.getBySlug(slug).subscribe({
+      next: (course) => {
+        this.course = course;
+        this.refreshEnrollment(course.id);
+        this.loadReviews(course.id);
+        this.seo.setTitle(course.title);
+        this.seo.setDescription(course.short_description ?? course.description ?? '');
+        this.seo.setImage(course.cover_image_url);
+        this.seo.setCanonical(`/courses/${course.slug}`);
+        this.seo.setJsonLd(buildCourseJsonLd(course), 'course-jsonld');
+      },
+      error: () => this.seo.setTitle('Kurs bulunamadı'),
     });
     this.courseService.getCurriculum(slug).subscribe((sections) => (this.sections = sections));
   }

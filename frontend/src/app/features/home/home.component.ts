@@ -7,6 +7,8 @@ import { CategoryService } from '../../core/services/category.service';
 import { CourseService } from '../../core/services/course.service';
 import { CourseCardComponent } from '../../shared/components/course-card/course-card.component';
 import { CtaButtonComponent } from '../../shared/components/cta-button/cta-button.component';
+import { SeoService } from '../../core/services/seo.service';
+import { buildOrganizationJsonLd } from '../../core/utils/structured-data';
 
 const BENEFIT_ICONS: Record<string, string> = {
   coupons: '🎟️',
@@ -170,10 +172,17 @@ export class HomeComponent implements OnInit {
 
   constructor(
     private readonly categoryService: CategoryService,
-    private readonly courseService: CourseService
+    private readonly courseService: CourseService,
+    private readonly seo: SeoService
   ) {}
 
   ngOnInit() {
+    this.seo.setTitle('');
+    this.seo.setDescription(
+      'BilimData ile veri bilimi, Python ve yazılım geliştirme alanlarında uzman eğitmenlerden online eğitimler alın.'
+    );
+    this.seo.setCanonical('/');
+    this.seo.setJsonLd(buildOrganizationJsonLd(), 'organization-jsonld');
     this.categoryService.list().subscribe((categories) => {
       this.categories = categories;
       this.totalCategories = categories.length;

@@ -5,6 +5,7 @@ import { TranslatePipe } from '@ngx-translate/core';
 import { BlogPost } from '../../../core/models/blog.model';
 import { BlogService } from '../../../core/services/blog.service';
 import { SupabaseService } from '../../../core/services/supabase.service';
+import { SeoService } from '../../../core/services/seo.service';
 
 @Component({
   selector: 'app-blog-list',
@@ -60,12 +61,18 @@ export class BlogListComponent implements OnInit {
 
   constructor(
     private readonly blogService: BlogService,
-    private readonly supabase: SupabaseService
+    private readonly supabase: SupabaseService,
+    private readonly seo: SeoService
   ) {
     this.session$ = this.supabase.session$;
   }
 
   ngOnInit() {
+    this.seo.setTitle('Blog');
+    this.seo.setDescription(
+      'Veri bilimi, Python ve kariyer yol haritaları üzerine yazılar — BilimData Blog.'
+    );
+    this.seo.setCanonical('/blog');
     this.blogService.list().subscribe((posts) => (this.posts = posts));
   }
 }

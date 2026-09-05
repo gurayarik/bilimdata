@@ -9,6 +9,7 @@ class Settings(BaseSettings):
     supabase_service_role_key: str
     supabase_jwt_secret: str
     cors_origins: str = "http://localhost:4200"
+    site_base_url: str = "https://bilimdata.com"
     youtube_api_key: str | None = None
     anthropic_api_key: str | None = None
     openai_api_key: str | None = None

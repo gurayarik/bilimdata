@@ -1,0 +1,2 @@
+[start]
+cmd = "node dist/frontend/server/server.mjs"

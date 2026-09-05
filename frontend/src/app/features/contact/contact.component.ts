@@ -3,6 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { ContactService } from '../../core/services/contact.service';
 import { SupabaseService } from '../../core/services/supabase.service';
+import { SeoService } from '../../core/services/seo.service';
 
 @Component({
   selector: 'app-contact',
@@ -110,10 +111,14 @@ export class ContactComponent implements OnInit {
   constructor(
     private readonly contactService: ContactService,
     private readonly supabase: SupabaseService,
-    private readonly translate: TranslateService
+    private readonly translate: TranslateService,
+    private readonly seo: SeoService
   ) {}
 
   ngOnInit() {
+    this.seo.setTitle('İletişim');
+    this.seo.setDescription('BilimData ile iletişime geçin — sorularınızı bize iletin.');
+    this.seo.setCanonical('/contact');
     const session = this.supabase.session$.value;
     if (session?.user) {
       this.email = session.user.email ?? '';

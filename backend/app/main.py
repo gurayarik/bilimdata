@@ -19,6 +19,7 @@ from .routers import (
     profiles,
     quizzes,
     reviews,
+    sitemap,
 )
 
 app = FastAPI(title="BilimData API")
@@ -47,6 +48,7 @@ app.include_router(instructor.router)
 app.include_router(quizzes.router)
 app.include_router(course_chat.router)
 app.include_router(contact.router)
+app.include_router(sitemap.router)
 
 
 @app.get("/health")
