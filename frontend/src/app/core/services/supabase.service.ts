@@ -23,7 +23,10 @@ export class SupabaseService {
   }
 
   signInWithGoogle() {
-    return this.client.auth.signInWithOAuth({ provider: 'google' });
+    return this.client.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: window.location.origin },
+    });
   }
 
   signInWithPassword(email: string, password: string) {
