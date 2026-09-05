@@ -32,6 +32,28 @@ async def list_courses(category_id: str | None = None):
     return [_mark_official_instructor(course) for course in result.data]
 
 
+@router.get("/stats")
+async def get_course_stats():
+    supabase = get_supabase()
+    courses = supabase.table("courses").select("id").eq("is_published", True).execute()
+    course_ids = [c["id"] for c in courses.data]
+    if not course_ids:
+        return {"lesson_count": 0}
+
+    sections = supabase.table("course_sections").select("id").in_("course_id", course_ids).execute()
+    section_ids = [s["id"] for s in sections.data]
+    if not section_ids:
+        return {"lesson_count": 0}
+
+    lessons = (
+        supabase.table("lessons")
+        .select("id", count="exact")
+        .in_("section_id", section_ids)
+        .execute()
+    )
+    return {"lesson_count": lessons.count}
+
+
 @router.get("/{slug}", response_model=CourseOut)
 async def get_course(slug: str):
     supabase = get_supabase()

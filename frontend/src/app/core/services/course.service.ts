@@ -28,4 +28,8 @@ export class CourseService {
   getCoach(slug: string, uiLanguage: string) {
     return this.api.get<{ message: string }>(`/courses/${slug}/coach?ui_language=${uiLanguage}`);
   }
+
+  getStats() {
+    return this.api.get<{ lesson_count: number }>('/courses/stats');
+  }
 }

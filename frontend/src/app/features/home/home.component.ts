@@ -57,8 +57,8 @@ const WHY_US_ICONS: Record<string, string> = {
               <p class="mt-1 text-xs text-white/60 sm:text-sm">{{ 'hero.stat_categories' | translate }}</p>
             </div>
             <div>
-              <p class="text-2xl font-bold text-accent-500 sm:text-3xl">{{ totalInstructors }}+</p>
-              <p class="mt-1 text-xs text-white/60 sm:text-sm">{{ 'hero.stat_instructors' | translate }}</p>
+              <p class="text-2xl font-bold text-accent-500 sm:text-3xl">{{ totalVideos }}+</p>
+              <p class="mt-1 text-xs text-white/60 sm:text-sm">{{ 'hero.stat_videos' | translate }}</p>
             </div>
           </div>
         }
@@ -166,7 +166,7 @@ export class HomeComponent implements OnInit {
   hasDeals = false;
   totalCourses = 0;
   totalCategories = 0;
-  totalInstructors = 0;
+  totalVideos = 0;
   readonly advantageKeys = ['coupons', 'portal', 'roadmaps', 'contact'];
   readonly whyUsKeys = ['item1', 'item2', 'item3', 'item4'];
 
@@ -191,7 +191,9 @@ export class HomeComponent implements OnInit {
       this.courses = courses.filter((c) => c.provider === 'internal').slice(0, 4);
       this.hasDeals = courses.some((c) => c.provider === 'udemy' || c.provider === 'external');
       this.totalCourses = courses.length;
-      this.totalInstructors = new Set(courses.map((c) => c.instructor?.id).filter(Boolean)).size;
+    });
+    this.courseService.getStats().subscribe((stats) => {
+      this.totalVideos = stats.lesson_count;
     });
   }
 
