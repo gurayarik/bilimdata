@@ -59,3 +59,12 @@ Bu dosya, projede yapılan önemli değişiklikleri kısaca kaydeder.
 
 ### Bilinçli notlar
 - Yerel `.env`'de `AI_PROVIDER=openai` + `gpt-5-mini` kullanıldığında, model uzun/karmaşık promptlarda tüm token bütçesini görünmeyen "reasoning" token'larına harcayıp boş içerik dönebiliyor (`finish_reason: length`, 0 görünür çıktı). Bu proje için içerik üretimi Anthropic (Haiku) ile yapıldı; production'ın hangi sağlayıcıyı kullandığı ayrıca kontrol edilmeli.
+
+### Yayına alma ve kullanıcı geri bildirimiyle ince ayar (branch: `feature/paths-ui-polish`, `feature/paths-nav-link`)
+- `feature/learning-paths` main'e merge edilip Railway'e deploy edildi — 7 path/64 makale canlıya alındı.
+- Canlıda görüldükten sonra gelen geri bildirimle düzeltildi:
+  - **Bug fix**: her makalenin kendi `<h2>{başlık}</h2>` ile başlaması, sayfadaki başlıkla birlikte başlığın iki kez görünmesine yol açıyordu — mevcut 64 makale için görüntülemede otomatik temizleniyor, yeni üretimler için prompt'tan tamamen kaldırıldı.
+  - Path detay sayfasına "Yol Haritalarına Dön" linki ve ders oynatıcıdaki gibi önceki/sonraki makale gezinme butonları eklendi (makale değişince sayfa başına scroll).
+  - Path listesi kartları yenilendi: gradyan + nokta doku kapak, sıra rozeti, hover'da ilerleme çubuğu/"Devam Et" ipucu.
+  - Ana menüye "Yol Haritaları" linki eklendi (Programlar ile Blog arasına).
+- Bu ikinci tur da main'e merge edilip deploy edildi.
