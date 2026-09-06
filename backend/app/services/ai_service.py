@@ -112,6 +112,51 @@ async def summarize_post(content: str) -> str:
     )
 
 
+def _strip_html_document_wrapper(html: str) -> str:
+    """Model bazen tam bir HTML doküman iskeleti (<!DOCTYPE>, <html>, <head>,
+    <body>) veya bir ```html ... ``` markdown kod bloğu ile sarmalanmış içerik
+    döndürebiliyor; bu, [innerHTML] ile bir <div> içine basıldığında tarayıcıda
+    tutarsız davranabildiği (veya kod bloğu işaretleri düz metin olarak
+    görünebildiği) için temizlenir."""
+    stripped = re.sub(r"^```(?:html)?\s*|\s*```$", "", html.strip())
+    match = re.search(r"<body[^>]*>(.*)</body>", stripped, re.DOTALL | re.IGNORECASE)
+    stripped = match.group(1) if match else stripped
+    stripped = re.sub(r"<!DOCTYPE[^>]*>", "", stripped, flags=re.IGNORECASE)
+    stripped = re.sub(r"</?(html|head|body)[^>]*>", "", stripped, flags=re.IGNORECASE)
+    return stripped.strip()
+
+
+async def generate_path_article(topic: str, notes: str | None = None) -> str:
+    """Bir 'Yol Haritası' makalesi için veri bilimi eğitim içeriği üretir
+    (Faz 6.5). Video yerine tamamen metinsel/sunumsal bir ders niteliğinde,
+    admin kaydetmeden önce gözden geçirip düzenleyebileceği bir taslak döner."""
+    notes_block = f"\n\nBu makalenin kapsamı (yalnızca bunları işle): {notes}" if notes else ""
+    prompt = f"""Sen deneyimli bir veri bilimi eğitmenisin. "{topic}" konusunda,
+    öğrencinin videoya ihtiyaç duymadan okuyarak öğrenebileceği, ders niteliğinde
+    detaylı bir eğitim makalesi yaz.{notes_block}
+
+Kurallar:
+- Türkçe yaz.
+- KAPSAMI DAR TUT: yalnızca "{topic}" konusunu ve yukarıda belirtilen alt
+  başlıkları işle. İlgili ama bu makalenin kapsamı dışındaki konulara (ör.
+  farklı kütüphaneler, ileri teknikler, sonraki derslerde işlenecek başlıklar)
+  GİRME — onlar ayrı makalelerde ele alınacak. Konuyu gereksiz yere genişletme.
+- UZUNLUK: yaklaşık 800-1300 kelime. Bu kısa bir özet olmamalı ama sınırsız bir
+  ansiklopedi maddesi de olmamalı — belirlenen dar kapsamı tam ve net şekilde
+  kapat, sonra bitir.
+- Yanıtını YALNIZCA düz HTML gövde içeriği olarak ver: <h2>, <h3>, <p>,
+  <ul><li>, <ol><li>, <strong>, <code>, <pre><code> (kod örnekleri için).
+  KESİNLİKLE <!DOCTYPE>, <html>, <head> veya <body> etiketi KULLANMA — yanıtın
+  doğrudan bir <h2> ile başlasın, tam bir HTML doküman iskeleti üretme.
+- İçerik somut örnekler, gerekiyorsa kısa kod parçaları ve net açıklamalar
+  içersin; yüzeysel geçmeyip öğretici olsun. Makaleyi mutlaka tamamla — yarım
+  cümle veya yarım etiketle bitirme.
+- Başlık (<h2>) ile başla, ardından mantıklı alt bölümlere (<h3>) ayır."""
+
+    raw = await _call_llm(messages=[{"role": "user", "content": prompt}], max_tokens=4000, timeout=120)
+    return _strip_html_document_wrapper(raw)
+
+
 async def generate_progress_coaching(
     course_title: str,
     completed_lessons: list[dict],
@@ -197,6 +242,36 @@ Kurallar:
     )
 
     # Claude bazen yanıtı ```json ... ``` kod bloğuna sarabiliyor; temizleyip parse ediyoruz.
+    cleaned = re.sub(r"^```(?:json)?\s*|\s*```$", "", raw_text.strip())
+    questions = json.loads(cleaned)
+    return questions
+
+
+async def generate_article_quiz_questions(article_title: str, content: str) -> list[dict]:
+    """Bir Yol Haritası makalesinin içeriğine dayanarak 10 soruluk çoktan
+    seçmeli bir sınav üretir (Faz 6.5). content: makalenin HTML içeriği —
+    etiketler yok sayılıp yalnızca metin içeriğine göre soru üretilir.
+    Döndürülen her öğe: {"question", "options" (4 eleman), "correct_index"}."""
+    prompt = f"""Sen bir eğitim içeriği uzmanısın. "{article_title}" başlıklı aşağıdaki
+makale içeriğine dayanarak, okuyucunun bu makaleyi ne kadar öğrendiğini ölçen tam 10
+adet çoktan seçmeli soru hazırla. İçerik HTML etiketleri içeriyor olabilir, yalnızca
+metin içeriğine odaklan, etiketleri yok say.
+
+Makale İçeriği:
+{content}
+
+Kurallar:
+- Her sorunun tam 4 şıkkı olsun, yalnızca bir tanesi doğru olsun.
+- Sorular doğrudan makalenin içeriğiyle ilgili, net ve tek doğru cevabı olan
+  sorular olsun.
+- Yanıtını YALNIZCA aşağıdaki JSON şemasına birebir uyan, başka hiçbir metin,
+  açıklama, markdown işareti veya kod bloğu içermeyen bir JSON dizisi olarak ver:
+[{{"question": "...", "options": ["...", "...", "...", "..."], "correct_index": 0}}]"""
+
+    raw_text = await _call_llm(
+        messages=[{"role": "user", "content": prompt}], max_tokens=2500, timeout=90
+    )
+
     cleaned = re.sub(r"^```(?:json)?\s*|\s*```$", "", raw_text.strip())
     questions = json.loads(cleaned)
     return questions

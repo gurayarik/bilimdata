@@ -175,6 +175,13 @@
     "subtitle": "Udemy'deki eğitimlerimiz ve eğitmenlerimizin diğer programları için kupon kodlarına göz atın.",
     "cta": "Fırsatları Gör"
   },
+  "paths_page": {
+    "title": "Yol Haritaları",
+    "subtitle": "Video izlemeden, okuyarak öğrenmek isteyenler için veri bilimi konularında sıralı metinsel içerikler.",
+    "empty": "Henüz bir yol haritası yayınlanmadı.",
+    "article_count": "makale",
+    "not_found": "Yol haritası bulunamadı."
+  },
   "blog_page": {
     "title": "Blog",
     "empty": "Henüz yayınlanmış bir yazı yok.",

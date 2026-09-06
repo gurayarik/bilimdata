@@ -64,6 +64,7 @@ export class AdminNavComponent implements OnInit {
       { path: '/admin/courses', label: 'Kurslar', icon: '📚' },
       { path: '/admin/lessons', label: 'Dersler', icon: '🎬' },
       { path: '/admin/blog', label: 'Blog', icon: '📝' },
+      { path: '/admin/paths', label: 'Yol Haritaları', icon: '🗺️' },
       { path: '/admin/enrollments', label: 'Kayıt Onayları', icon: '✅', badge: this.pendingEnrollments || undefined },
       {
         path: '/admin/instructor-applications',

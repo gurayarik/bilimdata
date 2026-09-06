@@ -55,6 +55,25 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'paths',
+    loadComponent: () =>
+      import('./features/paths/path-list/path-list.component').then((m) => m.PathListComponent),
+  },
+  {
+    path: 'paths/:slug/:articleSlug',
+    loadComponent: () =>
+      import('./features/paths/path-detail/path-detail.component').then(
+        (m) => m.PathDetailComponent
+      ),
+  },
+  {
+    path: 'paths/:slug',
+    loadComponent: () =>
+      import('./features/paths/path-detail/path-detail.component').then(
+        (m) => m.PathDetailComponent
+      ),
+  },
+  {
     path: 'blog',
     loadComponent: () =>
       import('./features/blog/blog-list/blog-list.component').then((m) => m.BlogListComponent),

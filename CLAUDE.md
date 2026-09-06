@@ -27,6 +27,7 @@ Bu dosya, Claude Code (veya bu projede çalışan herhangi bir AI ajanı) için 
 - Kurs detay sayfası (müfredat, video listesi, eğitmen, yorumlar, ücretsiz önizleme dersi işaretli)
 - Kullanıcı paneli (Kayıtlı Eğitimlerim, İlerleme, Sertifikalar — ileride)
 - Blog modülü (kategori, etiket, AI özet alanı için hazır şema)
+- **Yol Haritaları modülü**: video yerine yapay zeka tarafından üretilen metinsel/sunumsal içeriklerden oluşan, sıralı öğrenme yolları (ör. "Veri Bilimine Giriş" → sıralı makaleler). Video izlemek istemeyen/hızlı okuyarak öğrenmek isteyen kullanıcılar için — tamamen herkese açık, üyelik/enrollment gerektirmez.
 - Auth (Google OAuth + email/password, Supabase Auth üzerinden)
 
 ---
@@ -201,14 +202,40 @@ certificates (
   pdf_url text,                   -- Supabase Storage'a yüklenen PDF sertifikanın URL'i
   unique (user_id, course_id)
 )
+
+-- Yol Haritaları: video yerine metinsel/AI üretimli içerik, kurs sections/lessons
+-- ile aynı iki seviyeli yapı ama tamamen herkese açık (enrollment gerekmez).
+learning_paths (
+  id uuid primary key default gen_random_uuid(),
+  title text not null,
+  slug text unique not null,
+  description text,
+  cover_image_url text,
+  category_id uuid references categories(id),
+  is_published boolean default false,
+  order_index int not null default 0,
+  created_at timestamptz default now()
+)
+
+path_articles (
+  id uuid primary key default gen_random_uuid(),
+  path_id uuid references learning_paths(id) on delete cascade,
+  title text not null,
+  slug text not null,             -- path içinde unique (path_id, slug)
+  content text not null,          -- HTML, rich-text-editor ile üretiliyor (blog_posts.content ile aynı yaklaşım)
+  order_index int not null,
+  ai_generated boolean default false,
+  created_at timestamptz default now(),
+  unique (path_id, slug)
+)
 ```
 
 **Row Level Security (RLS) prensipleri:**
-- `courses`, `categories`, `blog_posts`: herkes `select` yapabilir (yalnızca `is_published = true` olanlar).
+- `courses`, `categories`, `blog_posts`, `learning_paths`, `path_articles`: herkes `select` yapabilir (yalnızca `is_published = true` olanlar; `path_articles` için ilgili `learning_paths.is_published = true` şartı).
 - `lessons`: `is_preview = true` olanlar herkese açık; diğerleri yalnızca `enrollments` tablosunda ilgili `course_id` için kaydı olan `user_id` tarafından okunabilir (bir Postgres fonksiyonu/policy ile kontrol edilecek).
 - `enrollments`, `lesson_progress`: kullanıcı yalnızca kendi kaydını görebilir/yazabilir.
 - `certificates`: kullanıcı yalnızca kendi sertifikalarını görebilir; yazma yalnızca backend (service role) tarafından yapılır.
-- Yazma işlemleri (`insert/update` kurslar, dersler, blog) yalnızca `role = 'admin'` veya `role = 'instructor'` (kendi kursu için) profillerine açık.
+- Yazma işlemleri (`insert/update` kurslar, dersler, blog, yol haritaları/makaleler) yalnızca `role = 'admin'` veya `role = 'instructor'` (kendi kursu için) profillerine açık; pratikte tüm yazma işlemleri backend'de service role ile yapılıyor.
 
 ---
 
@@ -232,14 +259,15 @@ backend/
 │   │   ├── coupons.py
 │   │   ├── reviews.py
 │   │   ├── blog.py            # GET /blog, GET /blog/{slug}
-│   │   ├── admin.py           # kurs/ders/blog CRUD + enrollment onayı (role='admin')
+│   │   ├── paths.py           # GET /paths, GET /paths/{slug} — Yol Haritaları (herkese açık, enrollment gerekmez)
+│   │   ├── admin.py           # kurs/ders/blog/yol haritası CRUD + enrollment onayı (role='admin')
 │   │   ├── certificates.py    # GET /certificates, POST /certificates/{course_id}/issue
 │   │   └── ai.py              # ileride: POST /blog/{id}/summarize
 │   ├── services/
 │   │   ├── youtube.py         # YouTube video meta çekme (süre, thumbnail)
 │   │   ├── payment_provider.py
 │   │   ├── certificate_service.py  # PDF sertifika üretimi (reportlab/weasyprint) + Storage'a yükleme
-│   │   └── ai_service.py      # Anthropic/OpenAI API çağrıları (özet çıkarma vb.)
+│   │   └── ai_service.py      # Anthropic/OpenAI API çağrıları (özet çıkarma, yol haritası makalesi üretimi vb.)
 │   └── deps.py                 # get_current_user, require_enrollment, require_admin vb.
 ├── requirements.txt
 └── .env.example
@@ -276,6 +304,9 @@ frontend/
 │   │   │   ├── blog/
 │   │   │   │   ├── blog-list/
 │   │   │   │   └── blog-detail/          # AI özet alanı burada gösterilecek
+│   │   │   ├── paths/                    # Yol Haritaları — herkese açık, video yerine metinsel içerik
+│   │   │   │   ├── path-list/
+│   │   │   │   └── path-detail/          # sol: makale listesi, sağ: aktif makale ([innerHTML])
 │   │   │   ├── auth/
 │   │   │   │   ├── login/
 │   │   │   │   └── register/
@@ -284,6 +315,7 @@ frontend/
 │   │   │   │   ├── course-editor/
 │   │   │   │   ├── lesson-editor/
 │   │   │   │   ├── blog-editor/
+│   │   │   │   ├── path-editor/          # yol haritası + makale CRUD, "AI ile Üret" butonu
 │   │   │   │   └── enrollment-approval/  # manuel enrollment onayı (v1 ödeme akışı)
 │   │   │   └── checkout/                 # v1: ücretsiz kayıt talebi; v2: ödeme/kupon akışı
 │   │   ├── shared/
@@ -321,11 +353,13 @@ frontend/
 
 ## 8. Ücretsiz İzleme / Ücretli Erişim Mantığı (Özet Kural Seti)
 
-| Kullanıcı Durumu | Katalog | Kurs Detayı | Önizleme Dersi | Kilitli Ders | Blog |
-|---|---|---|---|---|---|
-| Misafir (giriş yok) | ✅ | ✅ | ✅ | ❌ (login'e yönlendir) | ✅ |
-| Üye, kursa kayıtlı değil | ✅ | ✅ | ✅ | ❌ (satın al CTA) | ✅ |
-| Üye, kursa kayıtlı (paid/free/coupon) | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Kullanıcı Durumu | Katalog | Kurs Detayı | Önizleme Dersi | Kilitli Ders | Blog | Yol Haritaları |
+|---|---|---|---|---|---|---|
+| Misafir (giriş yok) | ✅ | ✅ | ✅ | ❌ (login'e yönlendir) | ✅ | ✅ |
+| Üye, kursa kayıtlı değil | ✅ | ✅ | ✅ | ❌ (satın al CTA) | ✅ | ✅ |
+| Üye, kursa kayıtlı (paid/free/coupon) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+
+Yol Haritaları içeriği kurslardan farklı olarak **enrollment/üyelik gerektirmez** — tamamen herkese açıktır (SEO değeri için).
 
 ---
 
@@ -339,8 +373,9 @@ frontend/
 6. **Faz 4 — Erişim Kontrolü & Kayıt & Admin Paneli:** Enrollment akışı v1'de **manuel/ücretsiz kayıt** (`payment_status='free'`, admin onayı); erişim kuralları; Angular admin modülü (kurs/ders/blog CRUD + enrollment onaylama).
 7. **Faz 5 — Ödeme Entegrasyonu (v2, ertelendi):** Iyzico/Stripe, kupon sistemi. v1 kapsamı dışında; manuel kayıt akışı yeterli görülüyor.
 8. **Faz 6 — Blog Modülü:** CRUD (admin panelden), listeleme, detay sayfası.
-9. **Faz 7 — AI Özetleme:** Blog için AI özet entegrasyonu.
-10. **Faz 8 — Kullanıcı Paneli, Sertifika & Yorumlar:** İlerleme takibi, kurs %100 tamamlanınca **PDF sertifika üretimi** (`certificate_service.py`) ve kullanıcı panelinden indirme, değerlendirme sistemi.
+9. **Faz 6.5 — Yol Haritaları Modülü:** `learning_paths`/`path_articles` şeması, admin CRUD (nested path→makale, `ai_service.generate_path_article` ile AI destekli taslak üretimi — kaydetmeden önce admin gözden geçirir), public `/paths` ve `/paths/{slug}` API'leri, Angular `features/paths/` (liste + sidebar'lı detay sayfası, her makale ayrı route/`/paths/:slug/:articleSlug`), sitemap'e dahil edilmesi. Blog CRUD pattern'ine ve mevcut AI servisine bağımlı olduğu için Blog'dan hemen sonra.
+10. **Faz 7 — AI Özetleme:** Blog için AI özet entegrasyonu.
+11. **Faz 8 — Kullanıcı Paneli, Sertifika & Yorumlar:** İlerleme takibi, kurs %100 tamamlanınca **PDF sertifika üretimi** (`certificate_service.py`) ve kullanıcı panelinden indirme, değerlendirme sistemi.
 
 ---
 

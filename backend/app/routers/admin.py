@@ -11,10 +11,16 @@ from ..models.admin import (
     AdminCourseUpdate,
     AdminLessonCreate,
     AdminLessonUpdate,
+    AdminPathArticleCreate,
+    AdminPathArticleGenerateIn,
+    AdminPathArticleUpdate,
+    AdminPathCreate,
+    AdminPathUpdate,
     AdminSectionCreate,
     AdminSectionUpdate,
 )
 from ..models.contact import ContactReplyIn
+from ..services.ai_service import generate_path_article
 from ..services.storage_service import delete_lesson_resource, upload_lesson_resource
 
 router = APIRouter(prefix="/admin", tags=["admin"], dependencies=[Depends(require_admin)])
@@ -182,6 +188,85 @@ async def delete_blog_post(post_id: str):
     supabase = get_supabase()
     supabase.table("blog_posts").delete().eq("id", post_id).execute()
     return {"ok": True}
+
+
+# --- Yol Haritaları ----------------------------------------------------------
+
+
+@router.get("/paths")
+async def list_paths_admin():
+    supabase = get_supabase()
+    result = supabase.table("learning_paths").select("*").order("order_index").execute()
+    return result.data
+
+
+@router.post("/paths")
+async def create_path(payload: AdminPathCreate):
+    supabase = get_supabase()
+    result = supabase.table("learning_paths").insert(payload.model_dump()).execute()
+    return _first_or_404(result, "Yol haritası oluşturulamadı")
+
+
+@router.put("/paths/{path_id}")
+async def update_path(path_id: str, payload: AdminPathUpdate):
+    supabase = get_supabase()
+    updates = payload.model_dump(exclude_unset=True)
+    result = supabase.table("learning_paths").update(updates).eq("id", path_id).execute()
+    return _first_or_404(result, "Yol haritası bulunamadı")
+
+
+@router.delete("/paths/{path_id}")
+async def delete_path(path_id: str):
+    supabase = get_supabase()
+    supabase.table("learning_paths").delete().eq("id", path_id).execute()
+    return {"ok": True}
+
+
+@router.get("/paths/{path_id}/articles")
+async def list_path_articles(path_id: str):
+    supabase = get_supabase()
+    result = (
+        supabase.table("path_articles")
+        .select("*")
+        .eq("path_id", path_id)
+        .order("order_index")
+        .execute()
+    )
+    return result.data
+
+
+@router.post("/paths/{path_id}/articles")
+async def create_path_article(path_id: str, payload: AdminPathArticleCreate):
+    supabase = get_supabase()
+    result = (
+        supabase.table("path_articles")
+        .insert({**payload.model_dump(), "path_id": path_id})
+        .execute()
+    )
+    return _first_or_404(result, "Makale oluşturulamadı")
+
+
+@router.put("/articles/{article_id}")
+async def update_path_article(article_id: str, payload: AdminPathArticleUpdate):
+    supabase = get_supabase()
+    updates = payload.model_dump(exclude_unset=True)
+    result = supabase.table("path_articles").update(updates).eq("id", article_id).execute()
+    return _first_or_404(result, "Makale bulunamadı")
+
+
+@router.delete("/articles/{article_id}")
+async def delete_path_article(article_id: str):
+    supabase = get_supabase()
+    supabase.table("path_articles").delete().eq("id", article_id).execute()
+    return {"ok": True}
+
+
+@router.post("/paths/{path_id}/articles/generate")
+async def generate_path_article_draft(path_id: str, payload: AdminPathArticleGenerateIn):
+    """İçeriği kaydetmeden, yalnızca AI ile üretip admin'in forma doldurup
+    gözden geçirmesi için döner — otomatik yayına karışmaz."""
+    content = await generate_path_article(payload.topic, payload.notes)
+    return {"content": content}
 
 
 # --- Eğitmenler (dropdown için) --------------------------------------------

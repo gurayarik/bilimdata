@@ -3,9 +3,11 @@ import { Router, RouterLink } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { Certificate } from '../../core/models/certificate.model';
 import { Enrollment } from '../../core/models/enrollment.model';
+import { PathMyProgressSummary } from '../../core/models/path.model';
 import { CertificateService } from '../../core/services/certificate.service';
 import { CourseService } from '../../core/services/course.service';
 import { EnrollmentService } from '../../core/services/enrollment.service';
+import { PathService } from '../../core/services/path.service';
 import { Profile, ProfileService } from '../../core/services/profile.service';
 import { SupabaseService } from '../../core/services/supabase.service';
 
@@ -225,6 +227,49 @@ import { SupabaseService } from '../../core/services/supabase.service';
           </a>
         </div>
       }
+
+      @if (pathProgress.length) {
+        <div class="mt-10">
+          <h2 class="text-lg font-bold text-brand-900">🗺️ Yol Haritalarım</h2>
+          <div class="mt-4 grid grid-cols-1 gap-5 sm:grid-cols-2">
+            @for (path of pathProgress; track path.slug) {
+              <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:shadow-md">
+                <a [routerLink]="['/paths', path.slug]" class="relative block aspect-video w-full bg-slate-100">
+                  @if (path.cover_image_url) {
+                    <img [src]="path.cover_image_url" class="h-full w-full object-cover" [alt]="path.title" />
+                  } @else {
+                    <div class="flex h-full items-center justify-center text-3xl">🗺️</div>
+                  }
+                  @if (path.progress_percent >= 100) {
+                    <span class="absolute right-2 top-2 rounded-full bg-emerald-500 px-2 py-0.5 text-xs font-semibold text-white shadow">
+                      ✅ {{ 'dashboard.stat_completed' | translate }}
+                    </span>
+                  }
+                </a>
+                <div class="p-4">
+                  <a [routerLink]="['/paths', path.slug]" class="font-semibold text-brand-900 hover:text-accent-600">
+                    {{ path.title }}
+                  </a>
+                  <div class="mt-3 flex items-center gap-2">
+                    <div class="h-2 flex-1 overflow-hidden rounded-full bg-slate-100">
+                      <div class="h-full bg-accent-500" [style.width.%]="path.progress_percent"></div>
+                    </div>
+                    <span class="shrink-0 text-xs font-semibold text-slate-500">%{{ path.progress_percent }}</span>
+                  </div>
+                  <div class="mt-4">
+                    <a
+                      [routerLink]="path.next_article_slug ? ['/paths', path.slug, path.next_article_slug] : ['/paths', path.slug]"
+                      class="rounded-full bg-brand-900 px-3 py-1.5 text-xs font-semibold text-white hover:bg-brand-900/90"
+                    >
+                      {{ (path.next_article_slug ? 'dashboard.continue_cta' : 'dashboard.start_cta') | translate }}
+                    </a>
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      }
     </section>
   `,
 })
@@ -235,12 +280,14 @@ export class DashboardComponent implements OnInit {
   coachMessages: Record<string, string> = {};
   coachLoading: Record<string, boolean> = {};
   coachOpen: Record<string, boolean> = {};
+  pathProgress: PathMyProgressSummary[] = [];
 
   constructor(
     private readonly profileService: ProfileService,
     private readonly supabase: SupabaseService,
     private readonly enrollmentService: EnrollmentService,
     private readonly certificateService: CertificateService,
+    private readonly pathService: PathService,
     private readonly courseService: CourseService,
     private readonly translate: TranslateService,
     private readonly router: Router
@@ -252,6 +299,7 @@ export class DashboardComponent implements OnInit {
       this.activeEnrollments = enrollments.filter((e) => e.payment_status !== 'pending');
     });
     this.certificateService.mine().subscribe((certificates) => (this.certificates = certificates));
+    this.pathService.myProgressAll().subscribe((paths) => (this.pathProgress = paths));
   }
 
   get initials(): string {

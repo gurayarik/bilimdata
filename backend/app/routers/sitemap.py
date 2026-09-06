@@ -7,7 +7,7 @@ from ..core.supabase_client import get_supabase
 
 router = APIRouter(tags=["sitemap"])
 
-STATIC_PATHS = ["", "/courses", "/deals", "/contact", "/privacy", "/terms", "/blog"]
+STATIC_PATHS = ["", "/courses", "/deals", "/contact", "/privacy", "/terms", "/blog", "/paths"]
 
 SITEMAP_NS = "http://www.sitemaps.org/schemas/sitemap/0.9"
 
@@ -48,6 +48,21 @@ async def get_sitemap():
     )
     for post in posts.data:
         _add_url(urlset, f"{base}/blog/{post['slug']}", post.get("created_at"))
+
+    paths = (
+        supabase.table("learning_paths")
+        .select("slug, created_at, path_articles(slug, created_at)")
+        .eq("is_published", True)
+        .execute()
+    )
+    for path in paths.data:
+        _add_url(urlset, f"{base}/paths/{path['slug']}", path.get("created_at"))
+        for article in path.get("path_articles") or []:
+            _add_url(
+                urlset,
+                f"{base}/paths/{path['slug']}/{article['slug']}",
+                article.get("created_at"),
+            )
 
     xml_bytes = tostring(urlset, encoding="utf-8", xml_declaration=True)
     return Response(content=xml_bytes, media_type="application/xml")

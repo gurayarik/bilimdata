@@ -89,3 +89,44 @@ class AdminBlogPostUpdate(BaseModel):
     category: str | None = None
     tags: list[str] | None = None
     is_published: bool | None = None
+
+
+class AdminPathCreate(BaseModel):
+    title: str
+    slug: str
+    description: str | None = None
+    cover_image_url: str | None = None
+    category_id: str | None = None
+    is_published: bool = False
+    order_index: int = 0
+
+
+class AdminPathUpdate(BaseModel):
+    title: str | None = None
+    slug: str | None = None
+    description: str | None = None
+    cover_image_url: str | None = None
+    category_id: str | None = None
+    is_published: bool | None = None
+    order_index: int | None = None
+
+
+class AdminPathArticleCreate(BaseModel):
+    title: str
+    slug: str
+    content: str
+    order_index: int
+    ai_generated: bool = False
+
+
+class AdminPathArticleUpdate(BaseModel):
+    title: str | None = None
+    slug: str | None = None
+    content: str | None = None
+    order_index: int | None = None
+    ai_generated: bool | None = None
+
+
+class AdminPathArticleGenerateIn(BaseModel):
+    topic: str
+    notes: str | None = None

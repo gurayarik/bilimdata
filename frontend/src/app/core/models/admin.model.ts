@@ -69,6 +69,27 @@ export interface AdminEnrollment {
   user: { full_name: string | null } | null;
 }
 
+export interface AdminPath {
+  id: string;
+  title: string;
+  slug: string;
+  description: string | null;
+  cover_image_url: string | null;
+  category_id: string | null;
+  is_published: boolean;
+  order_index: number;
+}
+
+export interface AdminPathArticle {
+  id: string;
+  path_id: string;
+  title: string;
+  slug: string;
+  content: string;
+  order_index: number;
+  ai_generated: boolean;
+}
+
 export interface AdminContactMessage {
   id: string;
   user_id: string | null;

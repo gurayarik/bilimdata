@@ -17,4 +17,14 @@ export class QuizService {
   submit(slug: string, blockIndex: number, answers: number[]) {
     return this.api.post<QuizResult>(`/courses/${slug}/quizzes/${blockIndex}/submit`, { answers });
   }
+
+  getPathArticleQuiz(pathSlug: string, articleSlug: string) {
+    return this.api.get<QuizDetail>(`/paths/${pathSlug}/articles/${articleSlug}/quiz`);
+  }
+
+  submitPathArticleQuiz(pathSlug: string, articleSlug: string, answers: number[]) {
+    return this.api.post<QuizResult>(`/paths/${pathSlug}/articles/${articleSlug}/quiz/submit`, {
+      answers,
+    });
+  }
 }

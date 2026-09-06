@@ -17,6 +17,11 @@ export const ADMIN_ROUTES: Routes = [
       import('./blog-editor/blog-editor.component').then((m) => m.BlogEditorComponent),
   },
   {
+    path: 'paths',
+    loadComponent: () =>
+      import('./path-editor/path-editor.component').then((m) => m.PathEditorComponent),
+  },
+  {
     path: 'enrollments',
     loadComponent: () =>
       import('./enrollment-approval/enrollment-approval.component').then(

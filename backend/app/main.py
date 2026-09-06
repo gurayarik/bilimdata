@@ -16,6 +16,7 @@ from .routers import (
     instructor,
     instructor_applications,
     lessons,
+    paths,
     profiles,
     quizzes,
     reviews,
@@ -48,6 +49,7 @@ app.include_router(instructor.router)
 app.include_router(quizzes.router)
 app.include_router(course_chat.router)
 app.include_router(contact.router)
+app.include_router(paths.router)
 app.include_router(sitemap.router)
 
 

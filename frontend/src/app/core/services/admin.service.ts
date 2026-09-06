@@ -6,6 +6,8 @@ import {
   AdminEnrollment,
   AdminInstructor,
   AdminInstructorApplication,
+  AdminPath,
+  AdminPathArticle,
   AdminSection,
 } from '../models/admin.model';
 import { ApiService } from './api.service';
@@ -72,6 +74,38 @@ export class AdminService {
   }
   summarizeBlogPost(id: string) {
     return this.api.post<{ ai_summary: string }>(`/blog/${id}/summarize`, {});
+  }
+
+  // Yol Haritaları
+  listPaths() {
+    return this.api.get<AdminPath[]>('/admin/paths');
+  }
+  createPath(payload: Partial<AdminPath>) {
+    return this.api.post<AdminPath>('/admin/paths', payload);
+  }
+  updatePath(id: string, payload: Partial<AdminPath>) {
+    return this.api.put<AdminPath>(`/admin/paths/${id}`, payload);
+  }
+  deletePath(id: string) {
+    return this.api.delete<{ ok: boolean }>(`/admin/paths/${id}`);
+  }
+  listPathArticles(pathId: string) {
+    return this.api.get<AdminPathArticle[]>(`/admin/paths/${pathId}/articles`);
+  }
+  createPathArticle(pathId: string, payload: Partial<AdminPathArticle>) {
+    return this.api.post<AdminPathArticle>(`/admin/paths/${pathId}/articles`, payload);
+  }
+  updatePathArticle(id: string, payload: Partial<AdminPathArticle>) {
+    return this.api.put<AdminPathArticle>(`/admin/articles/${id}`, payload);
+  }
+  deletePathArticle(id: string) {
+    return this.api.delete<{ ok: boolean }>(`/admin/articles/${id}`);
+  }
+  generatePathArticle(pathId: string, topic: string, notes?: string) {
+    return this.api.post<{ content: string }>(`/admin/paths/${pathId}/articles/generate`, {
+      topic,
+      notes,
+    });
   }
 
   // Eğitmenler

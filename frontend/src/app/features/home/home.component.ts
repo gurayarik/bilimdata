@@ -180,13 +180,26 @@ const WHY_US_ICONS: Record<string, string> = {
         </h2>
         <div class="mt-10 grid grid-cols-1 gap-5 sm:grid-cols-2 md:grid-cols-4">
           @for (item of advantageKeys; track item) {
-            <div class="rounded-xl bg-white p-6 text-center shadow-sm transition hover:shadow-md">
-              <span class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-accent-500/10 text-2xl">
-                {{ benefitIcon(item) }}
-              </span>
-              <h3 class="mt-4 font-semibold text-brand-900">{{ ('advantages.' + item + '_title') | translate }}</h3>
-              <p class="mt-2 text-sm text-slate-600">{{ ('advantages.' + item + '_desc') | translate }}</p>
-            </div>
+            @if (item === 'roadmaps') {
+              <a
+                routerLink="/paths"
+                class="rounded-xl bg-white p-6 text-center shadow-sm transition hover:-translate-y-1 hover:shadow-md"
+              >
+                <span class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-accent-500/10 text-2xl">
+                  {{ benefitIcon(item) }}
+                </span>
+                <h3 class="mt-4 font-semibold text-brand-900">{{ ('advantages.' + item + '_title') | translate }}</h3>
+                <p class="mt-2 text-sm text-slate-600">{{ ('advantages.' + item + '_desc') | translate }}</p>
+              </a>
+            } @else {
+              <div class="rounded-xl bg-white p-6 text-center shadow-sm transition hover:shadow-md">
+                <span class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-accent-500/10 text-2xl">
+                  {{ benefitIcon(item) }}
+                </span>
+                <h3 class="mt-4 font-semibold text-brand-900">{{ ('advantages.' + item + '_title') | translate }}</h3>
+                <p class="mt-2 text-sm text-slate-600">{{ ('advantages.' + item + '_desc') | translate }}</p>
+              </div>
+            }
           }
         </div>
       </div>

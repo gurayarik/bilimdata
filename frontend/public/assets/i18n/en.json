@@ -175,6 +175,13 @@
     "subtitle": "Check out coupon codes for our Udemy courses and our instructors' other programs.",
     "cta": "See Deals"
   },
+  "paths_page": {
+    "title": "Learning Paths",
+    "subtitle": "Sequenced text content on data science topics for those who'd rather read than watch.",
+    "empty": "No learning path has been published yet.",
+    "article_count": "articles",
+    "not_found": "Learning path not found."
+  },
   "blog_page": {
     "title": "Blog",
     "empty": "No posts published yet.",
