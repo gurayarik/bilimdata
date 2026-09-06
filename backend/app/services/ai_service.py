@@ -144,14 +144,17 @@ Kurallar:
 - UZUNLUK: yaklaşık 800-1300 kelime. Bu kısa bir özet olmamalı ama sınırsız bir
   ansiklopedi maddesi de olmamalı — belirlenen dar kapsamı tam ve net şekilde
   kapat, sonra bitir.
-- Yanıtını YALNIZCA düz HTML gövde içeriği olarak ver: <h2>, <h3>, <p>,
-  <ul><li>, <ol><li>, <strong>, <code>, <pre><code> (kod örnekleri için).
+- Yanıtını YALNIZCA düz HTML gövde içeriği olarak ver: <h3>, <p>, <ul><li>,
+  <ol><li>, <strong>, <code>, <pre><code> (kod örnekleri için).
   KESİNLİKLE <!DOCTYPE>, <html>, <head> veya <body> etiketi KULLANMA — yanıtın
-  doğrudan bir <h2> ile başlasın, tam bir HTML doküman iskeleti üretme.
+  tam bir HTML doküman iskeleti olmasın.
+- BAŞLIK TEKRARI YAPMA: sayfa makalenin başlığını ("{topic}") zaten ayrıca
+  gösteriyor, bu yüzden yanıtına <h2>{topic}</h2> gibi başlığı tekrar eden bir
+  üst başlık EKLEME. Doğrudan kısa bir giriş paragrafıyla (<p>) başla, ardından
+  mantıklı alt bölümlere <h3> ile ayır.
 - İçerik somut örnekler, gerekiyorsa kısa kod parçaları ve net açıklamalar
   içersin; yüzeysel geçmeyip öğretici olsun. Makaleyi mutlaka tamamla — yarım
-  cümle veya yarım etiketle bitirme.
-- Başlık (<h2>) ile başla, ardından mantıklı alt bölümlere (<h3>) ayır."""
+  cümle veya yarım etiketle bitirme."""
 
     raw = await _call_llm(messages=[{"role": "user", "content": prompt}], max_tokens=4000, timeout=120)
     return _strip_html_document_wrapper(raw)

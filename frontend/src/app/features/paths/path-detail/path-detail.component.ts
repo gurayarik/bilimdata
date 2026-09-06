@@ -1,5 +1,5 @@
-import { AsyncPipe } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { AsyncPipe, isPlatformBrowser } from '@angular/common';
+import { Component, Inject, OnInit, PLATFORM_ID } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 import { LearningPathDetail, PathArticle } from '../../../core/models/path.model';
@@ -15,7 +15,16 @@ import { SupabaseService } from '../../../core/services/supabase.service';
   imports: [RouterLink, TranslatePipe, AsyncPipe],
   template: `
     @if (path && activeArticle) {
-      <div class="mx-auto grid max-w-6xl grid-cols-1 gap-8 px-4 py-10 md:grid-cols-3">
+      <div class="mx-auto max-w-6xl px-4 pt-6">
+        <a
+          routerLink="/paths"
+          class="group inline-flex items-center gap-2 text-sm font-semibold text-brand-900 transition hover:text-accent-600"
+        >
+          <span class="flex h-8 w-8 items-center justify-center rounded-full bg-white shadow-sm ring-1 ring-slate-200 transition group-hover:ring-accent-500/50">‹</span>
+          Yol Haritalarına Dön
+        </a>
+      </div>
+      <div class="mx-auto grid max-w-6xl grid-cols-1 gap-8 px-4 py-6 md:grid-cols-3">
         <aside class="md:col-span-1">
           <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <h1 class="text-lg font-bold text-brand-900">{{ path.title }}</h1>
@@ -72,9 +81,9 @@ import { SupabaseService } from '../../../core/services/supabase.service';
           }
 
           <h2 class="text-2xl font-bold text-brand-900">{{ activeArticle.title }}</h2>
-          <div class="rich-content mt-6 max-w-none text-slate-700" [innerHTML]="activeArticle.content"></div>
+          <div class="rich-content mt-6 max-w-none text-slate-700" [innerHTML]="articleContent()"></div>
 
-          <div class="mt-8 flex items-center gap-4 border-t border-slate-200 pt-6">
+          <div class="mt-8 flex flex-wrap items-center gap-4 border-t border-slate-200 pt-6">
             @if (session$ | async) {
               <button
                 type="button"
@@ -92,6 +101,41 @@ import { SupabaseService } from '../../../core/services/supabase.service';
             } @else {
               <p class="text-sm text-slate-500">İlerlemeni kaydetmek için giriş yap.</p>
             }
+
+            <div class="ml-auto flex items-center gap-2">
+              @if (previousArticle) {
+                <a
+                  [routerLink]="['/paths', path.slug, previousArticle.slug]"
+                  class="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-brand-900 transition hover:bg-slate-200"
+                  aria-label="Önceki makale"
+                >
+                  ‹
+                </a>
+              } @else {
+                <span
+                  class="flex h-10 w-10 cursor-not-allowed items-center justify-center rounded-full bg-slate-100 text-slate-300"
+                  aria-hidden="true"
+                >
+                  ‹
+                </span>
+              }
+              @if (nextArticle) {
+                <a
+                  [routerLink]="['/paths', path.slug, nextArticle.slug]"
+                  class="flex h-10 items-center gap-2 rounded-full bg-brand-900 px-4 text-sm font-semibold text-white transition hover:bg-brand-800"
+                  aria-label="Sonraki makale"
+                >
+                  Sonraki Ders ›
+                </a>
+              } @else {
+                <span
+                  class="flex h-10 w-10 cursor-not-allowed items-center justify-center rounded-full bg-slate-100 text-slate-300"
+                  aria-hidden="true"
+                >
+                  ›
+                </span>
+              }
+            </div>
           </div>
 
           <section class="mt-8 rounded-2xl border border-accent-500/30 bg-accent-500/5 p-6">
@@ -217,14 +261,18 @@ export class PathDetailComponent implements OnInit {
   quizSubmitError = '';
   quizResult: QuizResult | null = null;
 
+  private readonly isBrowser: boolean;
+
   constructor(
     private readonly route: ActivatedRoute,
     private readonly pathService: PathService,
     private readonly quizService: QuizService,
     private readonly seo: SeoService,
-    private readonly supabase: SupabaseService
+    private readonly supabase: SupabaseService,
+    @Inject(PLATFORM_ID) platformId: object
   ) {
     this.session$ = this.supabase.session$;
+    this.isBrowser = isPlatformBrowser(platformId);
   }
 
   ngOnInit() {
@@ -239,6 +287,7 @@ export class PathDetailComponent implements OnInit {
             path.articles.find((a) => a.slug === articleSlug) ?? path.articles[0] ?? null;
           this.activeArticle = article;
           this.resetQuiz();
+          if (this.isBrowser) window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
           if (article) {
             this.seo.setTitle(`${article.title} — ${path.title}`);
             this.seo.setDescription(path.description ?? '');
@@ -263,6 +312,26 @@ export class PathDetailComponent implements OnInit {
 
   isActiveCompleted() {
     return !!this.activeArticle && this.completedArticleIds.has(this.activeArticle.id);
+  }
+
+  articleContent(): string {
+    if (!this.activeArticle) return '';
+    // İçerik AI tarafından her zaman başlığı tekrar eden bir <h2> ile
+    // başlıyor; sayfa zaten makale başlığını ayrı gösterdiği için tekrarı
+    // önlemek adına ilk <h2>...</h2> bloğu görüntülemeden çıkarılır.
+    return this.activeArticle.content.replace(/^\s*<h2[^>]*>.*?<\/h2>\s*/i, '');
+  }
+
+  get previousArticle(): PathArticle | null {
+    if (!this.path || !this.activeArticle) return null;
+    const index = this.path.articles.findIndex((a) => a.id === this.activeArticle!.id);
+    return index > 0 ? this.path.articles[index - 1] : null;
+  }
+
+  get nextArticle(): PathArticle | null {
+    if (!this.path || !this.activeArticle) return null;
+    const index = this.path.articles.findIndex((a) => a.id === this.activeArticle!.id);
+    return index >= 0 && index < this.path.articles.length - 1 ? this.path.articles[index + 1] : null;
   }
 
   toggleComplete() {
